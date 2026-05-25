@@ -28,9 +28,20 @@ export interface PipelineJob {
 
 export const INGEST_QUEUE = "recall.ingest";
 export const PIPELINE_QUEUE = "recall.pipeline";
+export const SCHEDULE_QUEUE = "recall.schedule";
 
 export const ingestQueue = new Queue<IngestJob>(INGEST_QUEUE, { connection });
 export const pipelineQueue = new Queue<PipelineJob>(PIPELINE_QUEUE, { connection });
+export const scheduleQueue = new Queue(SCHEDULE_QUEUE, { connection });
+
+/** Register (or refresh) the repeatable "sync all enabled connectors" job. */
+export async function registerScheduledSync(everyMs: number): Promise<void> {
+  await scheduleQueue.add(
+    "sync-all",
+    {},
+    { repeat: { every: everyMs }, jobId: "sync-all", removeOnComplete: 10, removeOnFail: 10 },
+  );
+}
 
 /** Enqueue a connector sync (worker will chain the pipeline afterwards). */
 export async function enqueueIngest(job: IngestJob): Promise<string> {

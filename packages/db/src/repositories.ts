@@ -266,6 +266,7 @@ export interface InsertDistillationInput {
   rationale?: string | null;
   status?: DistillStatus;
   sources?: string[];
+  metadata?: Record<string, unknown>;
 }
 
 /** Remove a node's distillations so re-processing is idempotent (no duplicates). */
@@ -284,8 +285,17 @@ export async function insertDistillation(input: InsertDistillationInput): Promis
     rationale: input.rationale ?? null,
     status: input.status ?? "decided",
     sources: input.sources ?? [],
+    metadata: input.metadata ?? {},
   });
   return id;
+}
+
+/** Existing distillation summaries in a workspace (for cross-graph dedup). */
+export async function listDistillationSummaries(workspaceId: string): Promise<{ nodeId: string; summary: string }[]> {
+  const rows = await sql<Array<{ nodeId: string; summary: string }>>`
+    SELECT node_id AS "nodeId", summary FROM distillations WHERE workspace_id = ${workspaceId}
+  `;
+  return rows;
 }
 
 // ---- chunks ----
@@ -405,6 +415,160 @@ export async function hybridSearch(params: HybridSearchParams): Promise<SearchHi
   add(keywordHits, 0.6);
 
   return [...merged.values()].sort((a, b) => b.score - a.score).slice(0, limit);
+}
+
+// ---- graph browsing (permission-filtered, paginated) ----
+
+export interface NodeSummary {
+  id: string;
+  kind: string;
+  title: string;
+  sourceType: string | null;
+  url: string | null;
+  updatedAt: string;
+}
+
+const SUBJ = (holder: string | undefined) => holder ?? "__anonymous__";
+
+export async function listNodes(
+  workspaceSlug: string,
+  opts: { holder?: string; kind?: string; limit: number; offset: number },
+): Promise<NodeSummary[]> {
+  const subject = SUBJ(opts.holder);
+  const rows = await sql<Array<Record<string, unknown>>>`
+    WITH ws AS (SELECT id FROM workspaces WHERE slug = ${workspaceSlug})
+    SELECT n.id, n.kind, n.title, n.source_type, n.metadata->>'url' AS url, n.updated_at
+    FROM nodes n
+    WHERE n.workspace_id = (SELECT id FROM ws)
+      AND EXISTS (SELECT 1 FROM acl a WHERE a.node_id = n.id AND a.subject IN (${subject}, '*'))
+      ${opts.kind ? sql`AND n.kind = ${opts.kind}` : sql``}
+    ORDER BY n.updated_at DESC
+    LIMIT ${opts.limit} OFFSET ${opts.offset}
+  `;
+  return rows.map(mapNodeSummary);
+}
+
+export async function listTimeline(
+  workspaceSlug: string,
+  opts: { holder?: string; limit: number; offset: number },
+): Promise<NodeSummary[]> {
+  return listNodes(workspaceSlug, { ...opts });
+}
+
+export interface NodeDetail {
+  node: NodeSummary & { body: string | null; metadata: Record<string, unknown> };
+  neighbors: { edgeKind: string; direction: "out" | "in"; nodeId: string; title: string }[];
+  distillations: Pick<DistillationRow, "summary" | "rationale" | "status" | "kind">[];
+}
+
+export async function getNodeDetail(
+  workspaceSlug: string,
+  nodeId: string,
+  holder: string | undefined,
+): Promise<NodeDetail | null> {
+  const subject = SUBJ(holder);
+  const nodeRows = await sql<Array<Record<string, unknown>>>`
+    WITH ws AS (SELECT id FROM workspaces WHERE slug = ${workspaceSlug})
+    SELECT n.id, n.kind, n.title, n.body, n.source_type, n.metadata, n.metadata->>'url' AS url, n.updated_at
+    FROM nodes n
+    WHERE n.id = ${nodeId} AND n.workspace_id = (SELECT id FROM ws)
+      AND EXISTS (SELECT 1 FROM acl a WHERE a.node_id = n.id AND a.subject IN (${subject}, '*'))
+    LIMIT 1
+  `;
+  const n = nodeRows[0];
+  if (!n) return null;
+
+  // Neighbors (only those the caller may also see)
+  const neighbors = await sql<Array<Record<string, unknown>>>`
+    SELECT e.kind AS edge_kind, 'out' AS direction, m.id AS node_id, m.title
+    FROM edges e JOIN nodes m ON m.id = e.dst_id
+    WHERE e.src_id = ${nodeId}
+      AND EXISTS (SELECT 1 FROM acl a WHERE a.node_id = m.id AND a.subject IN (${subject}, '*'))
+    UNION ALL
+    SELECT e.kind AS edge_kind, 'in' AS direction, m.id AS node_id, m.title
+    FROM edges e JOIN nodes m ON m.id = e.src_id
+    WHERE e.dst_id = ${nodeId}
+      AND EXISTS (SELECT 1 FROM acl a WHERE a.node_id = m.id AND a.subject IN (${subject}, '*'))
+  `;
+
+  const distillations = await sql<Array<Pick<DistillationRow, "summary" | "rationale" | "status" | "kind">>>`
+    SELECT summary, rationale, status, kind FROM distillations WHERE node_id = ${nodeId}
+  `;
+
+  return {
+    node: { ...mapNodeSummary(n), body: (n.body as string | null) ?? null, metadata: (n.metadata as Record<string, unknown>) ?? {} },
+    neighbors: neighbors.map((r) => ({
+      edgeKind: r.edge_kind as string,
+      direction: r.direction as "out" | "in",
+      nodeId: r.node_id as string,
+      title: r.title as string,
+    })),
+    distillations,
+  };
+}
+
+export async function listPeople(
+  workspaceSlug: string,
+  holder: string | undefined,
+): Promise<{ person: string; mentions: number }[]> {
+  const subject = SUBJ(holder);
+  const rows = await sql<Array<{ person: string; mentions: number }>>`
+    WITH ws AS (SELECT id FROM workspaces WHERE slug = ${workspaceSlug})
+    SELECT n.metadata->>'author' AS person, count(*)::int AS mentions
+    FROM nodes n
+    WHERE n.workspace_id = (SELECT id FROM ws)
+      AND n.metadata->>'author' IS NOT NULL
+      AND EXISTS (SELECT 1 FROM acl a WHERE a.node_id = n.id AND a.subject IN (${subject}, '*'))
+    GROUP BY 1 ORDER BY mentions DESC
+  `;
+  return rows;
+}
+
+export async function listProjects(
+  workspaceSlug: string,
+  holder: string | undefined,
+): Promise<{ project: string; items: number }[]> {
+  const subject = SUBJ(holder);
+  const rows = await sql<Array<{ project: string; items: number }>>`
+    WITH ws AS (SELECT id FROM workspaces WHERE slug = ${workspaceSlug})
+    SELECT coalesce(n.metadata->>'repo', n.title) AS project, count(*)::int AS items
+    FROM nodes n
+    WHERE n.workspace_id = (SELECT id FROM ws)
+      AND (n.kind = 'project' OR n.metadata->>'repo' IS NOT NULL)
+      AND EXISTS (SELECT 1 FROM acl a WHERE a.node_id = n.id AND a.subject IN (${subject}, '*'))
+    GROUP BY 1 ORDER BY items DESC
+  `;
+  return rows;
+}
+
+export async function listDecisions(
+  workspaceSlug: string,
+  holder: string | undefined,
+  opts: { kind?: string; status?: string; limit: number; offset: number },
+): Promise<Pick<DistillationRow, "summary" | "rationale" | "status" | "kind" | "nodeId">[]> {
+  const subject = SUBJ(holder);
+  return sql<Array<Pick<DistillationRow, "summary" | "rationale" | "status" | "kind" | "nodeId">>>`
+    WITH ws AS (SELECT id FROM workspaces WHERE slug = ${workspaceSlug})
+    SELECT d.summary, d.rationale, d.status, d.kind, d.node_id AS "nodeId"
+    FROM distillations d JOIN nodes n ON n.id = d.node_id
+    WHERE d.workspace_id = (SELECT id FROM ws)
+      AND EXISTS (SELECT 1 FROM acl a WHERE a.node_id = n.id AND a.subject IN (${subject}, '*'))
+      ${opts.kind ? sql`AND d.kind = ${opts.kind}` : sql``}
+      ${opts.status ? sql`AND d.status = ${opts.status}` : sql``}
+    ORDER BY d.created_at DESC
+    LIMIT ${opts.limit} OFFSET ${opts.offset}
+  `;
+}
+
+function mapNodeSummary(r: Record<string, unknown>): NodeSummary {
+  return {
+    id: r.id as string,
+    kind: r.kind as string,
+    title: r.title as string,
+    sourceType: (r.source_type as string | null) ?? null,
+    url: (r.url as string | null) ?? null,
+    updatedAt: r.updated_at instanceof Date ? r.updated_at.toISOString() : String(r.updated_at),
+  };
 }
 
 /** Distilled decisions/action items relevant to a query (keyword match). */

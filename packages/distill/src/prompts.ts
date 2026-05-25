@@ -6,8 +6,9 @@ Extract ONLY facts that are clearly supported by the text. For each, capture:
 - summary: one crisp sentence
 - rationale: the "why" behind it (null if not stated)
 - status: one of proposed | decided | in_progress | done | superseded | blocked
+- assignee: the responsible person (e.g. "@alice"), or null if not stated
 
-Return STRICT JSON: {"facts": [{"kind","summary","rationale","status"}]}.
+Return STRICT JSON: {"facts": [{"kind","summary","rationale","status","assignee"}]}.
 If nothing durable is present, return {"facts": []}. No prose, no markdown.`;
 
 export function distillUserPrompt(title: string, body: string, metadata: Record<string, unknown>): string {

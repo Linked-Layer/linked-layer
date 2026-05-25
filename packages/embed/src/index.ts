@@ -77,6 +77,34 @@ export class VoyageEmbeddingProvider implements EmbeddingProvider {
   }
 }
 
+/**
+ * Split text into overlapping chunks for embedding. Tries to break on paragraph
+ * boundaries; falls back to hard splits for very long runs. Returns at least one
+ * chunk (possibly empty) so every node gets indexed.
+ */
+export function chunkText(text: string, opts: { size?: number; overlap?: number } = {}): string[] {
+  const size = opts.size ?? 1000;
+  const overlap = opts.overlap ?? 150;
+  const clean = text.replace(/\r\n/g, "\n").trim();
+  if (clean.length <= size) return [clean];
+
+  const chunks: string[] = [];
+  let start = 0;
+  while (start < clean.length) {
+    let end = Math.min(start + size, clean.length);
+    if (end < clean.length) {
+      // prefer to cut on a paragraph/sentence boundary within the window
+      const window = clean.slice(start, end);
+      const br = Math.max(window.lastIndexOf("\n\n"), window.lastIndexOf("\n"), window.lastIndexOf(". "));
+      if (br > size * 0.5) end = start + br + 1;
+    }
+    chunks.push(clean.slice(start, end).trim());
+    if (end >= clean.length) break;
+    start = end - overlap;
+  }
+  return chunks.filter((c) => c.length > 0);
+}
+
 let cached: EmbeddingProvider | null = null;
 
 /** Resolve the configured embedding provider (singleton). */

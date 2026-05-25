@@ -1,5 +1,6 @@
 import {
   type SourceType,
+  NotFoundError,
   apiKeyCreateSchema,
   askRequestSchema,
   connectorConfigSchema,
@@ -7,7 +8,15 @@ import {
   searchRequestSchema,
   writeRequestSchema,
 } from "@recall/core";
-import { relevantDistillations } from "@recall/db";
+import {
+  getNodeDetail,
+  listDecisions,
+  listNodes,
+  listPeople,
+  listProjects,
+  listTimeline,
+  sql,
+} from "@recall/db";
 import {
   ask,
   issueApiKey,
@@ -23,8 +32,24 @@ import { authenticate, requireAdmin, requireScope, resolveWorkspace } from "./mi
 import { getHolder, requireToken } from "./middleware/gating";
 import { requirePayment } from "./middleware/x402";
 
+function parsePage(q: { limit?: string; offset?: string }): { limit: number; offset: number } {
+  const limit = Math.min(Math.max(Number(q.limit ?? 50) || 50, 1), 200);
+  const offset = Math.max(Number(q.offset ?? 0) || 0, 0);
+  return { limit, offset };
+}
+
 export async function registerRoutes(app: FastifyInstance): Promise<void> {
   app.get("/healthz", async () => ({ ok: true, service: "recall-api" }));
+
+  // Readiness: verify the database is reachable.
+  app.get("/readyz", async (_req, reply) => {
+    try {
+      await sql`SELECT 1`;
+      return { ok: true, db: "up" };
+    } catch (err) {
+      return reply.status(503).send({ ok: false, db: "down", error: (err as Error).message });
+    }
+  });
 
   // ---- core: recall(query, scope) — authenticated + gated + pay-per-call ----
   app.post(
@@ -89,12 +114,51 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     raw.end();
   });
 
-  // ---- decision log ----
-  app.get("/v1/graph/decisions", { preHandler: [authenticate, requireScope("recall"), requireToken] }, async (req) => {
-    const q = req.query as { workspace?: string; limit?: string };
-    const workspace = resolveWorkspace(req, q.workspace);
-    const decisions = await relevantDistillations(workspace, "", getHolder(req), Number(q.limit ?? 20));
+  // ---- graph browsing (all permission-filtered, paginated) ----
+  const graphPre = { preHandler: [authenticate, requireScope("recall"), requireToken] };
+
+  app.get("/v1/graph/decisions", graphPre, async (req) => {
+    const q = req.query as { workspace?: string; kind?: string; status?: string; limit?: string; offset?: string };
+    const { limit, offset } = parsePage(q);
+    const decisions = await listDecisions(resolveWorkspace(req, q.workspace), getHolder(req), {
+      kind: q.kind,
+      status: q.status,
+      limit,
+      offset,
+    });
     return { decisions };
+  });
+
+  app.get("/v1/graph/nodes", graphPre, async (req) => {
+    const q = req.query as { workspace?: string; kind?: string; limit?: string; offset?: string };
+    const { limit, offset } = parsePage(q);
+    const nodes = await listNodes(resolveWorkspace(req, q.workspace), { holder: getHolder(req), kind: q.kind, limit, offset });
+    return { nodes };
+  });
+
+  app.get("/v1/graph/nodes/:id", graphPre, async (req) => {
+    const q = req.query as { workspace?: string };
+    const id = (req.params as { id: string }).id;
+    const detail = await getNodeDetail(resolveWorkspace(req, q.workspace), id, getHolder(req));
+    if (!detail) throw new NotFoundError(`Node ${id} not found or not permitted`);
+    return detail;
+  });
+
+  app.get("/v1/graph/timeline", graphPre, async (req) => {
+    const q = req.query as { workspace?: string; limit?: string; offset?: string };
+    const { limit, offset } = parsePage(q);
+    const timeline = await listTimeline(resolveWorkspace(req, q.workspace), { holder: getHolder(req), limit, offset });
+    return { timeline };
+  });
+
+  app.get("/v1/graph/people", graphPre, async (req) => {
+    const q = req.query as { workspace?: string };
+    return { people: await listPeople(resolveWorkspace(req, q.workspace), getHolder(req)) };
+  });
+
+  app.get("/v1/graph/projects", graphPre, async (req) => {
+    const q = req.query as { workspace?: string };
+    return { projects: await listProjects(resolveWorkspace(req, q.workspace), getHolder(req)) };
   });
 
   // ---- connector config + sync trigger ----

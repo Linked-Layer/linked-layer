@@ -40,6 +40,13 @@ export const config = {
     host: str("API_HOST", "0.0.0.0"),
     port: int("API_PORT", 8080),
     logLevel: str("LOG_LEVEL", "info"),
+    rateLimitMax: int("RATE_LIMIT_MAX", 120),
+    rateLimitWindowMs: int("RATE_LIMIT_WINDOW_MS", 60_000),
+  },
+
+  /** Background connector sync interval (ms). 0 disables the scheduler. */
+  sync: {
+    intervalMs: int("SYNC_INTERVAL_MS", 0),
   },
 
   llm: {

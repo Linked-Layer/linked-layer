@@ -9,6 +9,8 @@ export interface DistilledFact {
   summary: string;
   rationale: string | null;
   status: DistillStatus;
+  /** Person responsible (for action items), e.g. "@alice". Null if unknown. */
+  assignee: string | null;
 }
 
 export interface DistillInput {
@@ -67,7 +69,8 @@ function parseFacts(text: string): DistilledFact[] {
       if (!kind || !summary) return [];
       const status = VALID_STATUS.includes(o.status as DistillStatus) ? (o.status as DistillStatus) : "decided";
       const rationale = typeof o.rationale === "string" && o.rationale.trim() ? o.rationale.trim() : null;
-      return [{ kind, summary, rationale, status }];
+      const assignee = typeof o.assignee === "string" && o.assignee.trim() ? o.assignee.trim() : null;
+      return [{ kind, summary, rationale, status, assignee }];
     });
   } catch {
     return [];
@@ -94,5 +97,10 @@ function distillHeuristic(input: DistillInput): DistilledFact[] {
       ? "decided"
       : "in_progress";
 
-  return [{ kind, summary, rationale, status }];
+  // Best-effort assignee from "owner @x" / "assigned to @x" / first "@mention".
+  const assigneeMatch =
+    /(?:owner|assignee|assigned to|@owner)\s*[:\-]?\s*@?(\w[\w.-]*)/i.exec(input.body) ?? /@(\w[\w.-]*)/.exec(input.body);
+  const assignee = assigneeMatch ? `@${assigneeMatch[1]!.replace(/^@/, "")}` : null;
+
+  return [{ kind, summary, rationale, status, assignee }];
 }

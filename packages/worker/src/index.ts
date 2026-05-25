@@ -1,12 +1,17 @@
+import { config } from "@recall/core";
+import { listEnabledConnectorsWithSlug } from "@recall/db";
 import { processWorkspace, syncConnector } from "@recall/engine";
 import { Worker } from "bullmq";
 import {
   INGEST_QUEUE,
   PIPELINE_QUEUE,
+  SCHEDULE_QUEUE,
   type IngestJob,
   type PipelineJob,
   connection,
+  enqueueIngest,
   enqueuePipeline,
+  registerScheduledSync,
 } from "./queue";
 
 export { enqueueIngest, enqueuePipeline, ingestQueue, pipelineQueue } from "./queue";
@@ -38,15 +43,34 @@ export function startWorkers(): { close: () => Promise<void> } {
     { connection, concurrency: 2 },
   );
 
-  for (const w of [ingestWorker, pipelineWorker]) {
+  // Scheduler: fan out a sync to every enabled connector on each tick.
+  const scheduleWorker = new Worker(
+    SCHEDULE_QUEUE,
+    async () => {
+      const connectors = await listEnabledConnectorsWithSlug();
+      for (const c of connectors) {
+        await enqueueIngest({ workspaceSlug: c.workspaceSlug, sourceType: c.sourceType });
+      }
+      console.log(`[schedule] enqueued sync for ${connectors.length} connector(s)`);
+      return { dispatched: connectors.length };
+    },
+    { connection, concurrency: 1 },
+  );
+
+  for (const w of [ingestWorker, pipelineWorker, scheduleWorker]) {
     w.on("failed", (job, err) => console.error(`[worker] job ${job?.id} failed:`, err.message));
   }
 
-  console.log("✓ Recall workers started (ingest, pipeline)");
+  if (config.sync.intervalMs > 0) {
+    void registerScheduledSync(config.sync.intervalMs);
+    console.log(`✓ scheduled connector sync every ${Math.round(config.sync.intervalMs / 1000)}s`);
+  }
+
+  console.log("✓ Recall workers started (ingest, pipeline, schedule)");
 
   return {
     close: async () => {
-      await Promise.all([ingestWorker.close(), pipelineWorker.close()]);
+      await Promise.all([ingestWorker.close(), pipelineWorker.close(), scheduleWorker.close()]);
     },
   };
 }

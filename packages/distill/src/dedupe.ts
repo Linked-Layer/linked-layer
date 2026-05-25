@@ -1,12 +1,23 @@
 import type { DistilledFact } from "./pipeline";
 
-function normalize(s: string): string {
+export function normalizeSummary(s: string): string {
   return s
     .toLowerCase()
     .replace(/[-_/]+/g, " ") // treat hyphen/underscore/slash as word separators
     .replace(/[^a-z0-9\s]/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+const normalize = normalizeSummary;
+
+function tokenSet(s: string): Set<string> {
+  return new Set(normalize(s).split(" ").filter(Boolean));
+}
+
+/** True if `summary` is a near-duplicate (Jaccard ≥ threshold) of any existing summary. */
+export function isNearDuplicate(summary: string, existing: string[], threshold = 0.8): boolean {
+  const t = tokenSet(summary);
+  return existing.some((e) => jaccard(tokenSet(e), t) >= threshold);
 }
 
 /**

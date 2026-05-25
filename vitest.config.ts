@@ -13,6 +13,8 @@ export default defineConfig({
       "@recall/distill": pkg("./packages/distill/src/index.ts"),
       "@recall/gating": pkg("./packages/gating/src/index.ts"),
       "@recall/engine": pkg("./packages/engine/src/index.ts"),
+      "@recall/worker": pkg("./packages/worker/src/index.ts"),
+      "@recall/api": pkg("./packages/api/src/index.ts"),
     },
   },
   test: {

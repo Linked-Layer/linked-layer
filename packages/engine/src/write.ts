@@ -8,7 +8,7 @@ import {
   setAcl,
   upsertNode,
 } from "@recall/db";
-import { getEmbeddingProvider } from "@recall/embed";
+import { chunkText, getEmbeddingProvider } from "@recall/embed";
 import { distillItem } from "@recall/distill";
 
 /**
@@ -44,15 +44,20 @@ export async function writeMemory(input: WriteRequestInput): Promise<{ nodeId: s
         rationale: fact.rationale,
         status: fact.status,
         sources: [nodeId],
+        metadata: fact.assignee ? { assignee: fact.assignee } : {},
       });
-      distilledLines.push(`${fact.summary}${fact.rationale ? ` — why: ${fact.rationale}` : ""} [${fact.status}]`);
+      const who = fact.assignee ? ` (owner ${fact.assignee})` : "";
+      distilledLines.push(`${fact.summary}${fact.rationale ? ` — why: ${fact.rationale}` : ""}${who} [${fact.status}]`);
     }
   }
 
   const text = [input.title, input.body, ...distilledLines].filter(Boolean).join("\n");
-  const [vec] = await getEmbeddingProvider().embed([text]);
+  const chunks = chunkText(text);
+  const vectors = await getEmbeddingProvider().embed(chunks);
   await deleteChunksForNode(nodeId);
-  await insertChunk(workspaceId, nodeId, text.slice(0, 4000), vec ?? null);
+  for (let i = 0; i < chunks.length; i++) {
+    await insertChunk(workspaceId, nodeId, chunks[i]!, vectors[i] ?? null);
+  }
 
   return { nodeId };
 }

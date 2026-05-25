@@ -74,6 +74,7 @@ export const distillations = pgTable("distillations", {
   rationale: text("rationale"),
   status: text("status").notNull().default("decided"),
   sources: jsonb("sources").notNull().default(sql`'[]'::jsonb`),
+  metadata: jsonb("metadata").notNull().default(sql`'{}'::jsonb`),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

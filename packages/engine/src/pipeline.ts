@@ -8,13 +8,14 @@ import {
   getWorkspaceIdBySlug,
   insertChunk,
   insertDistillation,
+  listDistillationSummaries,
   markRawProcessed,
   setAcl,
   upsertEdge,
   upsertNode,
 } from "@recall/db";
-import { getEmbeddingProvider } from "@recall/embed";
-import { distillItem } from "@recall/distill";
+import { chunkText, getEmbeddingProvider } from "@recall/embed";
+import { distillItem, isNearDuplicate } from "@recall/distill";
 
 export interface PipelineResult {
   processed: number;
@@ -58,6 +59,13 @@ export async function processWorkspace(workspaceSlug: string, batch = 500): Prom
     await setAcl(workspaceId, nodeId, (item.audience as string[]) ?? []);
   }
 
+  // Cross-graph dedup baseline: existing distillation summaries from nodes NOT in
+  // this batch (this batch's own distillations are re-deleted below). Grows as we insert.
+  const batchNodeIds = new Set(nodeIdByRaw.values());
+  const seenSummaries = (await listDistillationSummaries(workspaceId))
+    .filter((d) => !batchNodeIds.has(d.nodeId))
+    .map((d) => d.summary);
+
   // Pass 2: edges + distillation + embedding text.
   for (const item of raw) {
     const nodeId = nodeIdByRaw.get(item.id)!;
@@ -76,6 +84,9 @@ export async function processWorkspace(workspaceSlug: string, batch = 500): Prom
     const distilledLines: string[] = [];
     await deleteDistillationsForNode(nodeId);
     for (const fact of facts) {
+      // Skip facts already captured elsewhere in the graph (same decision via
+      // multiple sources) so the decision-log stays clean.
+      if (isNearDuplicate(fact.summary, seenSummaries)) continue;
       await insertDistillation({
         workspaceId,
         nodeId,
@@ -84,23 +95,30 @@ export async function processWorkspace(workspaceSlug: string, batch = 500): Prom
         rationale: fact.rationale,
         status: fact.status,
         sources: [item.externalId],
+        metadata: fact.assignee ? { assignee: fact.assignee } : {},
       });
+      seenSummaries.push(fact.summary);
       distillCount++;
-      distilledLines.push(`${fact.summary}${fact.rationale ? ` — why: ${fact.rationale}` : ""} [${fact.status}]`);
+      const who = fact.assignee ? ` (owner ${fact.assignee})` : "";
+      distilledLines.push(`${fact.summary}${fact.rationale ? ` — why: ${fact.rationale}` : ""}${who} [${fact.status}]`);
     }
 
     const text = [item.title, item.body, ...distilledLines].filter(Boolean).join("\n");
     touched.push({ nodeId, text });
   }
 
-  // Pass 3: embed touched nodes (single batched call).
+  // Pass 3: chunk long bodies, embed all chunks in one batch, store per node.
   let chunkCount = 0;
-  if (touched.length > 0) {
-    const vectors = await embedder.embed(touched.map((t) => t.text));
-    for (let i = 0; i < touched.length; i++) {
-      const { nodeId, text } = touched[i]!;
-      await deleteChunksForNode(nodeId);
-      await insertChunk(workspaceId, nodeId, text.slice(0, 4000), vectors[i] ?? null);
+  const allChunks: { nodeId: string; content: string }[] = [];
+  for (const { nodeId, text } of touched) {
+    for (const content of chunkText(text)) allChunks.push({ nodeId, content });
+  }
+  if (allChunks.length > 0) {
+    const vectors = await embedder.embed(allChunks.map((c) => c.content));
+    for (const { nodeId } of touched) await deleteChunksForNode(nodeId);
+    for (let i = 0; i < allChunks.length; i++) {
+      const c = allChunks[i]!;
+      await insertChunk(workspaceId, c.nodeId, c.content, vectors[i] ?? null);
       chunkCount++;
     }
   }

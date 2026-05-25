@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { EMBED_DIM, StubEmbeddingProvider } from "@recall/embed";
+import { EMBED_DIM, StubEmbeddingProvider, chunkText } from "@recall/embed";
+
+describe("chunkText", () => {
+  it("returns a single chunk for short text", () => {
+    expect(chunkText("hello world")).toEqual(["hello world"]);
+  });
+
+  it("splits long text into overlapping chunks", () => {
+    const para = "Sentence number that is reasonably long. ".repeat(80); // ~3200 chars
+    const chunks = chunkText(para, { size: 1000, overlap: 150 });
+    expect(chunks.length).toBeGreaterThan(2);
+    expect(Math.max(...chunks.map((c) => c.length))).toBeLessThanOrEqual(1000);
+  });
+});
 
 describe("StubEmbeddingProvider", () => {
   const p = new StubEmbeddingProvider();
