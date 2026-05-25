@@ -25,6 +25,20 @@ export class NotFoundError extends RecallError {
   }
 }
 
+/** Missing/invalid API key. */
+export class AuthError extends RecallError {
+  constructor(message = "Unauthorized", details?: unknown) {
+    super(message, { status: 401, code: "unauthorized", details });
+  }
+}
+
+/** Authenticated but lacking the required scope. */
+export class ForbiddenError extends RecallError {
+  constructor(message = "Forbidden", details?: unknown) {
+    super(message, { status: 403, code: "forbidden", details });
+  }
+}
+
 /** Token gating (hold-to-use) rejection. */
 export class GatingError extends RecallError {
   constructor(message = "Insufficient token balance", details?: unknown) {

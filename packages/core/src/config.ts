@@ -55,6 +55,12 @@ export const config = {
     voyageApiKey: process.env.VOYAGE_API_KEY ?? "",
   },
 
+  auth: {
+    enabled: bool("AUTH_ENABLED", true),
+    /** Admin token guarding key-management endpoints. Empty → endpoints disabled. */
+    adminToken: process.env.ADMIN_TOKEN ?? "",
+  },
+
   gating: {
     enabled: bool("GATING_ENABLED", true),
     minBalance: int("GATING_MIN_BALANCE", 1000),

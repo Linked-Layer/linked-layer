@@ -3,6 +3,8 @@ export type { Database } from "./client";
 export * as schema from "./schema";
 export type {
   WorkspaceRow,
+  ApiKeyRow,
+  ConnectorRow,
   NodeRow,
   EdgeRow,
   RawIngestRow,

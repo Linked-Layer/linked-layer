@@ -43,6 +43,14 @@ export const connectorConfigSchema = z.object({
   config: z.record(z.unknown()).default({}),
 });
 
+export const apiKeyCreateSchema = z.object({
+  workspace: z.string().min(1),
+  name: z.string().min(1).default("default"),
+  holder: z.string().min(1),
+  scopes: z.array(z.enum(["recall", "search", "ask", "write", "admin"])).optional(),
+});
+
+export type ApiKeyCreateInput = z.infer<typeof apiKeyCreateSchema>;
 export type RecallRequestInput = z.infer<typeof recallRequestSchema>;
 export type SearchRequestInput = z.infer<typeof searchRequestSchema>;
 export type WriteRequestInput = z.infer<typeof writeRequestSchema>;

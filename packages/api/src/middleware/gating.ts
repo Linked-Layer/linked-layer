@@ -2,8 +2,9 @@ import { config } from "@recall/core";
 import { getTokenGate } from "@recall/gating";
 import type { FastifyReply, FastifyRequest } from "fastify";
 
-/** Subject identity carried by the caller (mirrors source permissions). */
+/** Subject identity for ACL/gating: the authenticated key's holder, else the dev header. */
 export function getHolder(req: FastifyRequest): string | undefined {
+  if (req.auth) return req.auth.holder;
   const h = req.headers["x-recall-holder"];
   return Array.isArray(h) ? h[0] : h;
 }

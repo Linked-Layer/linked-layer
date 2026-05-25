@@ -86,7 +86,41 @@ export const chunks = pgTable("chunks", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const apiKeys = pgTable(
+  "api_keys",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id").notNull(),
+    name: text("name").notNull(),
+    keyHash: text("key_hash").notNull().unique(),
+    prefix: text("prefix").notNull(),
+    holder: text("holder").notNull(),
+    scopes: jsonb("scopes").notNull().default(sql`'["recall","search","ask","write"]'::jsonb`),
+    revoked: boolean("revoked").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  },
+  (t) => [index("api_keys_ws_idx").on(t.workspaceId)],
+);
+
+export const connectors = pgTable(
+  "connectors",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id").notNull(),
+    sourceType: text("source_type").notNull(),
+    config: jsonb("config").notNull().default(sql`'{}'::jsonb`),
+    cursor: jsonb("cursor").notNull().default(sql`'{}'::jsonb`),
+    enabled: boolean("enabled").notNull().default(true),
+    lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("connectors_ws_idx").on(t.workspaceId)],
+);
+
 export type WorkspaceRow = typeof workspaces.$inferSelect;
+export type ApiKeyRow = typeof apiKeys.$inferSelect;
+export type ConnectorRow = typeof connectors.$inferSelect;
 export type NodeRow = typeof nodes.$inferSelect;
 export type EdgeRow = typeof edges.$inferSelect;
 export type RawIngestRow = typeof rawIngest.$inferSelect;

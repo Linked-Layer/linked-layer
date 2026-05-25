@@ -2,6 +2,7 @@ export * from "./brand";
 export * from "./errors";
 export * from "./types";
 export * from "./schemas";
+export * from "./auth";
 export { config } from "./config";
 export type { Config } from "./config";
 

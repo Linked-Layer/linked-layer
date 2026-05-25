@@ -6,3 +6,7 @@ export { recall } from "./recall";
 export { ask } from "./ask";
 export type { AskParams, AskHandle } from "./ask";
 export { writeMemory } from "./write";
+export { issueApiKey, authenticateBearer, listWorkspaceKeys, revokeWorkspaceKey } from "./auth";
+export type { IssueKeyParams, IssuedKey } from "./auth";
+export { listConnectors } from "./connectors";
+export type { ConnectorSummary } from "./connectors";

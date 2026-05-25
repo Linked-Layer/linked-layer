@@ -1,13 +1,13 @@
 import type { SourceType } from "@recall/core";
 import type { Connector } from "./base";
-import { GithubConnector } from "./github.stub";
+import { GithubConnector } from "./github";
 import { SampleConnector } from "./sample";
-import { SlackConnector } from "./slack.stub";
+import { SlackConnector } from "./slack";
 
 export * from "./base";
 export { SampleConnector, SAMPLE_WORKSPACE } from "./sample";
-export { GithubConnector } from "./github.stub";
-export { SlackConnector } from "./slack.stub";
+export { GithubConnector } from "./github";
+export { SlackConnector } from "./slack";
 
 const registry: Record<SourceType, () => Connector> = {
   sample: () => new SampleConnector(),

@@ -3,8 +3,8 @@ import type { DistillStatus, RawItem, SourceType } from "@recall/core";
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "./client";
 import { sql } from "./client";
-import { acl, chunks, distillations, edges, nodes, rawIngest, workspaces } from "./schema";
-import type { DistillationRow, NodeRow, RawIngestRow } from "./schema";
+import { acl, apiKeys, chunks, connectors, distillations, edges, nodes, rawIngest, workspaces } from "./schema";
+import type { ApiKeyRow, ConnectorRow, DistillationRow, NodeRow, RawIngestRow } from "./schema";
 
 // ---- workspaces ----
 
@@ -18,6 +18,108 @@ export async function ensureWorkspace(slug: string, name: string): Promise<strin
 export async function getWorkspaceIdBySlug(slug: string): Promise<string | null> {
   const row = await db.select({ id: workspaces.id }).from(workspaces).where(eq(workspaces.slug, slug)).limit(1);
   return row[0]?.id ?? null;
+}
+
+export async function getWorkspaceSlugById(id: string): Promise<string | null> {
+  const row = await db.select({ slug: workspaces.slug }).from(workspaces).where(eq(workspaces.id, id)).limit(1);
+  return row[0]?.slug ?? null;
+}
+
+// ---- api keys ----
+
+export interface InsertApiKeyInput {
+  workspaceId: string;
+  name: string;
+  keyHash: string;
+  prefix: string;
+  holder: string;
+  scopes: string[];
+}
+
+export async function insertApiKey(input: InsertApiKeyInput): Promise<ApiKeyRow> {
+  const rows = await db
+    .insert(apiKeys)
+    .values({ id: newId("key"), ...input })
+    .returning();
+  return rows[0]!;
+}
+
+export async function findActiveApiKeyByHash(keyHash: string): Promise<ApiKeyRow | null> {
+  const row = await db
+    .select()
+    .from(apiKeys)
+    .where(and(eq(apiKeys.keyHash, keyHash), eq(apiKeys.revoked, false)))
+    .limit(1);
+  return row[0] ?? null;
+}
+
+export async function listApiKeys(workspaceId: string): Promise<ApiKeyRow[]> {
+  return db.select().from(apiKeys).where(eq(apiKeys.workspaceId, workspaceId));
+}
+
+export async function revokeApiKey(id: string): Promise<boolean> {
+  const rows = await db.update(apiKeys).set({ revoked: true }).where(eq(apiKeys.id, id)).returning({ id: apiKeys.id });
+  return rows.length > 0;
+}
+
+export async function touchApiKey(id: string): Promise<void> {
+  await db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, id));
+}
+
+export async function countActiveApiKeys(workspaceId: string): Promise<number> {
+  const r = await sql`SELECT count(*)::int AS n FROM api_keys WHERE workspace_id = ${workspaceId} AND revoked = false`;
+  return r[0]!.n as number;
+}
+
+// ---- connectors ----
+
+export async function upsertConnectorConfig(
+  workspaceId: string,
+  sourceType: SourceType,
+  config: Record<string, unknown>,
+): Promise<ConnectorRow> {
+  const rows = await db
+    .insert(connectors)
+    .values({ id: newId("con"), workspaceId, sourceType, config })
+    .onConflictDoUpdate({ target: [connectors.workspaceId, connectors.sourceType], set: { config } })
+    .returning();
+  return rows[0]!;
+}
+
+export async function getConnectorRow(
+  workspaceId: string,
+  sourceType: SourceType,
+): Promise<ConnectorRow | null> {
+  const row = await db
+    .select()
+    .from(connectors)
+    .where(and(eq(connectors.workspaceId, workspaceId), eq(connectors.sourceType, sourceType)))
+    .limit(1);
+  return row[0] ?? null;
+}
+
+export async function listConnectorRows(workspaceId: string): Promise<ConnectorRow[]> {
+  return db.select().from(connectors).where(eq(connectors.workspaceId, workspaceId));
+}
+
+export async function updateConnectorCursor(
+  id: string,
+  cursor: Record<string, unknown>,
+  lastSyncAt: Date,
+): Promise<void> {
+  await db.update(connectors).set({ cursor, lastSyncAt }).where(eq(connectors.id, id));
+}
+
+/** All enabled connectors across workspaces, with their workspace slug (for the scheduler). */
+export async function listEnabledConnectorsWithSlug(): Promise<
+  { id: string; workspaceSlug: string; sourceType: SourceType }[]
+> {
+  const rows = await sql<Array<{ id: string; slug: string; source_type: string }>>`
+    SELECT c.id, w.slug, c.source_type
+    FROM connectors c JOIN workspaces w ON w.id = c.workspace_id
+    WHERE c.enabled = true
+  `;
+  return rows.map((r) => ({ id: r.id, workspaceSlug: r.slug, sourceType: r.source_type as SourceType }));
 }
 
 // ---- raw ingest ----

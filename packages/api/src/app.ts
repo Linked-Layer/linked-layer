@@ -10,6 +10,8 @@ export async function buildApp(): Promise<FastifyInstance> {
     disableRequestLogging: config.api.logLevel !== "debug",
   });
 
+  app.decorateRequest("auth", undefined);
+
   app.setErrorHandler((err: unknown, _req, reply) => {
     if (err instanceof ZodError) {
       return reply.status(400).send({ error: { code: "validation_error", message: "Invalid request", details: err.issues } });

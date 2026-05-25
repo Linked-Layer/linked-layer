@@ -1,5 +1,6 @@
 import {
   type SourceType,
+  apiKeyCreateSchema,
   askRequestSchema,
   connectorConfigSchema,
   recallRequestSchema,
@@ -7,46 +8,65 @@ import {
   writeRequestSchema,
 } from "@recall/core";
 import { relevantDistillations } from "@recall/db";
-import { ask, recall, writeMemory } from "@recall/engine";
+import {
+  ask,
+  issueApiKey,
+  listConnectors,
+  listWorkspaceKeys,
+  recall,
+  revokeWorkspaceKey,
+  writeMemory,
+} from "@recall/engine";
 import { enqueueIngest } from "@recall/worker";
 import type { FastifyInstance } from "fastify";
+import { authenticate, requireAdmin, requireScope, resolveWorkspace } from "./middleware/auth";
 import { getHolder, requireToken } from "./middleware/gating";
 import { requirePayment } from "./middleware/x402";
 
 export async function registerRoutes(app: FastifyInstance): Promise<void> {
   app.get("/healthz", async () => ({ ok: true, service: "recall-api" }));
 
-  // ---- core: recall(query, scope) — gated + pay-per-call ----
-  app.post("/v1/recall", { preHandler: [requireToken, requirePayment] }, async (req) => {
-    const body = recallRequestSchema.parse(req.body);
-    return recall({ ...body, holder: body.holder ?? getHolder(req) });
-  });
+  // ---- core: recall(query, scope) — authenticated + gated + pay-per-call ----
+  app.post(
+    "/v1/recall",
+    { preHandler: [authenticate, requireScope("recall"), requireToken, requirePayment] },
+    async (req) => {
+      const body = recallRequestSchema.parse(req.body);
+      const workspace = resolveWorkspace(req, body.scope.workspace);
+      return recall({ ...body, scope: { ...body.scope, workspace }, holder: getHolder(req) });
+    },
+  );
 
   // ---- raw hybrid search ----
-  app.post("/v1/search", { preHandler: [requireToken, requirePayment] }, async (req) => {
-    const body = searchRequestSchema.parse(req.body);
-    const result = await recall({
-      query: body.query,
-      scope: body.scope,
-      limit: body.limit,
-      holder: body.holder ?? getHolder(req),
-    });
-    return { query: result.query, sources: result.sources };
-  });
+  app.post(
+    "/v1/search",
+    { preHandler: [authenticate, requireScope("search"), requireToken, requirePayment] },
+    async (req) => {
+      const body = searchRequestSchema.parse(req.body);
+      const workspace = resolveWorkspace(req, body.scope.workspace);
+      const result = await recall({
+        query: body.query,
+        scope: { ...body.scope, workspace },
+        limit: body.limit,
+        holder: getHolder(req),
+      });
+      return { query: result.query, sources: result.sources };
+    },
+  );
 
   // ---- write / annotate memory ----
-  app.post("/v1/write", { preHandler: [requireToken] }, async (req) => {
+  app.post("/v1/write", { preHandler: [authenticate, requireScope("write"), requireToken] }, async (req) => {
     const body = writeRequestSchema.parse(req.body);
-    return writeMemory(body);
+    return writeMemory({ ...body, workspace: resolveWorkspace(req, body.workspace) });
   });
 
   // ---- "ask the company" (SSE stream) ----
-  app.post("/v1/ask", { preHandler: [requireToken] }, async (req, reply) => {
+  app.post("/v1/ask", { preHandler: [authenticate, requireScope("ask"), requireToken] }, async (req, reply) => {
     const body = askRequestSchema.parse(req.body);
     const handle = await ask({
       question: body.question,
-      workspace: body.scope.workspace,
-      holder: body.holder ?? getHolder(req),
+      workspace: resolveWorkspace(req, body.scope.workspace),
+      holder: getHolder(req),
     });
 
     reply.hijack();
@@ -70,17 +90,18 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // ---- decision log ----
-  app.get("/v1/graph/decisions", { preHandler: [requireToken] }, async (req) => {
+  app.get("/v1/graph/decisions", { preHandler: [authenticate, requireScope("recall"), requireToken] }, async (req) => {
     const q = req.query as { workspace?: string; limit?: string };
-    if (!q.workspace) return { decisions: [] };
-    const decisions = await relevantDistillations(q.workspace, "", getHolder(req), Number(q.limit ?? 20));
+    const workspace = resolveWorkspace(req, q.workspace);
+    const decisions = await relevantDistillations(workspace, "", getHolder(req), Number(q.limit ?? 20));
     return { decisions };
   });
 
   // ---- connector config + sync trigger ----
-  app.post("/v1/connectors/:type", { preHandler: [requireToken] }, async (req) => {
+  app.post("/v1/connectors/:type", { preHandler: [authenticate, requireScope("write"), requireToken] }, async (req) => {
     const type = (req.params as { type: string }).type as SourceType;
-    const body = connectorConfigSchema.parse({ ...(req.body as object), sourceType: type });
+    const raw = (req.body ?? {}) as Record<string, unknown>;
+    const body = connectorConfigSchema.parse({ ...raw, sourceType: type, workspace: resolveWorkspace(req, raw.workspace as string) });
     const jobId = await enqueueIngest({
       workspaceSlug: body.workspace,
       sourceType: body.sourceType,
@@ -89,11 +110,38 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     return { enqueued: true, jobId };
   });
 
-  app.post("/v1/ingest/:source/sync", { preHandler: [requireToken] }, async (req) => {
+  app.get("/v1/connectors", { preHandler: [authenticate, requireScope("recall"), requireToken] }, async (req) => {
+    const q = req.query as { workspace?: string };
+    return { connectors: await listConnectors(resolveWorkspace(req, q.workspace)) };
+  });
+
+  app.post("/v1/ingest/:source/sync", { preHandler: [authenticate, requireScope("write"), requireToken] }, async (req) => {
     const source = (req.params as { source: string }).source as SourceType;
     const body = (req.body ?? {}) as { workspace?: string };
-    if (!body.workspace) throw new Error("workspace is required");
-    const jobId = await enqueueIngest({ workspaceSlug: body.workspace, sourceType: source });
+    const jobId = await enqueueIngest({ workspaceSlug: resolveWorkspace(req, body.workspace), sourceType: source });
     return { enqueued: true, jobId };
+  });
+
+  // ---- key management (admin-token guarded) ----
+  app.post("/v1/keys", { preHandler: [requireAdmin] }, async (req) => {
+    const body = apiKeyCreateSchema.parse(req.body);
+    const issued = await issueApiKey({
+      workspaceSlug: body.workspace,
+      name: body.name,
+      holder: body.holder,
+      scopes: body.scopes,
+    });
+    return issued; // `key` is shown ONCE
+  });
+
+  app.get("/v1/keys", { preHandler: [requireAdmin] }, async (req) => {
+    const q = req.query as { workspace?: string };
+    if (!q.workspace) return { keys: [] };
+    return { keys: await listWorkspaceKeys(q.workspace) };
+  });
+
+  app.delete("/v1/keys/:id", { preHandler: [requireAdmin] }, async (req) => {
+    await revokeWorkspaceKey((req.params as { id: string }).id);
+    return { revoked: true };
   });
 }
