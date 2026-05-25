@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@recall/core": ["../core/src/index.ts"],
+      "@recall/db": ["../db/src/index.ts"],
+      "@recall/engine": ["../engine/src/index.ts"],
+      "@recall/connectors": ["../connectors/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

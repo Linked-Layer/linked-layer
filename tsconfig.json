@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "noEmit": true,
+    "paths": {
+      "@recall/core": ["packages/core/src/index.ts"],
+      "@recall/core/*": ["packages/core/src/*"],
+      "@recall/db": ["packages/db/src/index.ts"],
+      "@recall/db/*": ["packages/db/src/*"],
+      "@recall/embed": ["packages/embed/src/index.ts"],
+      "@recall/connectors": ["packages/connectors/src/index.ts"],
+      "@recall/distill": ["packages/distill/src/index.ts"],
+      "@recall/gating": ["packages/gating/src/index.ts"],
+      "@recall/worker": ["packages/worker/src/index.ts"],
+      "@recall/api": ["packages/api/src/index.ts"],
+      "@recall/mcp": ["packages/mcp/src/index.ts"]
+    }
+  },
+  "include": ["packages/*/src/**/*.ts"]
+}

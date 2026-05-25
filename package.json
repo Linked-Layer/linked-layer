@@ -1,0 +1,35 @@
+{
+  "name": "recall",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Recall ($RECALL) — token-gated context layer for teams and agents (MCP + Context API)",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "pnpm --filter @recall/db db:generate",
+    "db:migrate": "pnpm --filter @recall/db db:migrate",
+    "seed": "tsx packages/worker/src/seed.ts",
+    "api": "tsx packages/api/src/server.ts",
+    "worker": "tsx packages/worker/src/index.ts",
+    "mcp": "tsx packages/mcp/src/server.ts",
+    "dev": "concurrently -n api,worker -c blue,green \"pnpm api\" \"pnpm worker\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
