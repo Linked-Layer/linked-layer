@@ -1,8 +1,8 @@
-# Recall ($RECALL)
+# Linked Layer ($LINKED)
 
 > Token-gated shared-memory / context layer for teams and agents.
 
-Recall sits on top of a team's tools, builds a **permission-aware context graph**
+Linked Layer sits on top of a team's tools, builds a **permission-aware context graph**
 (projects, people, decisions, threads, links, timelines), continuously **distills**
 decisions / the "why" / action items / statuses with an LLM, and serves that context
 to **people** ("ask the company") and to **AI agents** through **MCP** and a **Context API**

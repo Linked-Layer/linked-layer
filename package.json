@@ -1,14 +1,20 @@
 {
-  "name": "recall",
+  "name": "linked-layer",
   "version": "0.1.0",
   "private": true,
-  "description": "Recall ($RECALL) — token-gated context layer for teams and agents (MCP + Context API)",
+  "description": "Linked Layer ($LINKED) — token-gated shared-memory / context layer for teams and agents (MCP + Context API)",
   "type": "module",
   "engines": {
     "node": ">=20"
   },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
-    "build": "tsc -b",
+    "build": "vite build apps/web",
+    "build:backend": "tsc -b",
+    "web": "pnpm --filter @linked/web dev",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -30,6 +36,7 @@
     "prettier": "^3.4.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
+    "vite": "^6.0.7",
     "vitest": "^2.1.8"
   },
   "packageManager": "pnpm@9.15.0"

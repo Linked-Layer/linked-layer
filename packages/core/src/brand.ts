@@ -13,11 +13,12 @@ export interface Brand {
   mint: string;
 }
 
-const ticker = process.env.RECALL_TOKEN_TICKER ?? "RECALL";
+// MNEMO_* is the current naming; RECALL_* kept as a fallback for older envs.
+const ticker = process.env.MNEMO_TOKEN_TICKER ?? process.env.RECALL_TOKEN_TICKER ?? "LINKED";
 
 export const BRAND: Brand = {
-  name: process.env.RECALL_TOKEN_NAME ?? "Recall",
+  name: process.env.MNEMO_TOKEN_NAME ?? process.env.RECALL_TOKEN_NAME ?? "Linked Layer",
   ticker,
   symbol: `$${ticker}`,
-  mint: process.env.RECALL_TOKEN_MINT ?? "stub-mint-address",
+  mint: process.env.MNEMO_TOKEN_MINT ?? process.env.RECALL_TOKEN_MINT ?? "stub-mint-address",
 };

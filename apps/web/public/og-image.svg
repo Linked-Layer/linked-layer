@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c5cff"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="0%" r="70%">
+      <stop offset="0%" stop-color="rgba(124,92,255,0.25)"/>
+      <stop offset="100%" stop-color="rgba(7,7,11,0)"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#07070b"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <g transform="translate(96,150)">
+    <rect x="0" y="0" width="96" height="96" rx="24" fill="#0d0d16" stroke="url(#g)" stroke-width="4"/>
+    <g transform="translate(0,0) scale(2)" stroke="url(#g)" stroke-width="2.4" stroke-linecap="round" fill="none">
+      <path d="M15 33 L15 17 L24 26 L33 17 L33 33"/>
+    </g>
+    <g transform="scale(2)" fill="url(#g)">
+      <circle cx="15" cy="17" r="3"/><circle cx="24" cy="26" r="3"/><circle cx="33" cy="17" r="3"/>
+    </g>
+  </g>
+  <text x="96" y="330" font-family="Inter, system-ui, sans-serif" font-size="76" font-weight="700" fill="#ffffff">Linked Layer</text>
+  <text x="96" y="400" font-family="Inter, system-ui, sans-serif" font-size="34" fill="#8b8ba7">Shared memory for teams &amp; agents</text>
+  <text x="96" y="470" font-family="Inter, system-ui, sans-serif" font-size="28" fill="url(#g)" font-weight="600">$LINKED · token-gated context layer on Solana</text>
+</svg>
