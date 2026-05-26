@@ -16,7 +16,7 @@ export function LiveStats() {
   const s = sol.data;
 
   return (
-    <section className="mx-auto -mt-6 max-w-7xl px-4 sm:px-6">
+    <section className="relative z-10 mx-auto -mt-16 max-w-7xl px-4 sm:px-6">
       <div className="panel p-6 md:p-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted">

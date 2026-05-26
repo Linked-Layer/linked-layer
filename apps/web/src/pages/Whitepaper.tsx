@@ -27,7 +27,7 @@ export function Whitepaper() {
 
         <div className="mb-10">
           <Badge>{BRAND.symbol} · Whitepaper v1.0</Badge>
-          <h1 className="mt-4 text-4xl font-semibold text-white">{BRAND.name}</h1>
+          <h1 className="mt-4 font-serif text-5xl font-light text-white">{BRAND.name}</h1>
           <p className="mt-3 max-w-2xl text-muted">{BRAND.tagline}. {BRAND.oneLiner}</p>
         </div>
 

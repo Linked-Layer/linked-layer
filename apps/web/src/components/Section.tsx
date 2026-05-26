@@ -24,7 +24,7 @@ export function Section({
           {eyebrow && (
             <div className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-violet">{eyebrow}</div>
           )}
-          {title && <h2 className="text-3xl font-semibold text-white md:text-4xl">{title}</h2>}
+          {title && <h2 className="font-serif text-4xl font-light text-white md:text-5xl">{title}</h2>}
           {subtitle && <p className="mt-4 text-muted">{subtitle}</p>}
         </Reveal>
       )}

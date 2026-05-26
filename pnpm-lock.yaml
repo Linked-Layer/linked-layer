@@ -35,6 +35,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@fontsource-variable/fraunces':
+        specifier: ^5.1.0
+        version: 5.2.9
       '@fontsource-variable/inter':
         specifier: ^5.1.1
         version: 5.2.8
@@ -884,6 +887,9 @@ packages:
 
   '@fastify/swagger@9.7.0':
     resolution: {integrity: sha512-Vp1SC1GC2Hrkd3faFILv86BzUNyFz5N4/xdExqtCgkGASOzn/x+eMe4qXIGq7cdT6wif/P/oa6r1Ruqx19paZA==}
+
+  '@fontsource-variable/fraunces@5.2.9':
+    resolution: {integrity: sha512-Y6IjunlN9Ni723np+GIgAaKzCDBrPRrqNi01TZxHs5wtHYROWFM9W6yiT+/gGwSjWIRD18oX17kD/BRWekc/Lw==}
 
   '@fontsource-variable/inter@5.2.8':
     resolution: {integrity: sha512-kOfP2D+ykbcX/P3IFnokOhVRNoTozo5/JxhAIVYLpea/UBmCQ/YWPBfWIDuBImXX/15KH+eKh4xpEUyS2sQQGQ==}
@@ -4926,6 +4932,8 @@ snapshots:
       yaml: 2.9.0
     transitivePeerDependencies:
       - supports-color
+
+  '@fontsource-variable/fraunces@5.2.9': {}
 
   '@fontsource-variable/inter@5.2.8': {}
 

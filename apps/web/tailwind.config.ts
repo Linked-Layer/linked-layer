@@ -21,6 +21,7 @@ export default {
       },
       fontFamily: {
         sans: ["'Inter Variable'", "Inter", "system-ui", "sans-serif"],
+        serif: ["'Fraunces Variable'", "Fraunces", "Georgia", "serif"],
       },
       backgroundImage: {
         "linked-gradient": "linear-gradient(120deg, #7c5cff 0%, #22d3ee 100%)",

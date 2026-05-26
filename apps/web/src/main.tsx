@@ -5,6 +5,7 @@ if (typeof window !== "undefined" && !(window as unknown as { Buffer?: unknown }
 }
 
 import "@fontsource-variable/inter";
+import "@fontsource-variable/fraunces";
 import "./index.css";
 
 import React from "react";
