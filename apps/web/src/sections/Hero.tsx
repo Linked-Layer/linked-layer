@@ -3,6 +3,7 @@ import { ArrowRight, FileText, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Parallax } from "@/components/motion";
 import { BRAND } from "@/lib/brand";
 import { config } from "@/lib/config";
 
@@ -90,9 +91,12 @@ function HeroBackground() {
     [2, 5],
   ];
   return (
-    <div className="pointer-events-none absolute inset-0 -z-10">
+    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       <div className="absolute inset-0 bg-radial-fade" />
-      <svg viewBox="0 0 720 360" className="absolute left-1/2 top-10 h-[420px] w-[1100px] -translate-x-1/2 opacity-50">
+      <div className="absolute -left-32 top-10 h-72 w-72 animate-float rounded-full bg-violet/20 blur-3xl" />
+      <div className="absolute -right-24 top-40 h-80 w-80 animate-float rounded-full bg-cyan/15 blur-3xl [animation-delay:2s]" />
+      <Parallax amount={70}>
+        <svg viewBox="0 0 720 360" className="absolute left-1/2 top-10 h-[420px] w-[1100px] -translate-x-1/2 opacity-50">
         <defs>
           <linearGradient id="hero-g" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#7c5cff" />
@@ -124,7 +128,8 @@ function HeroBackground() {
             transition={{ duration: 3, repeat: Infinity, delay: i * 0.3 }}
           />
         ))}
-      </svg>
+        </svg>
+      </Parallax>
     </div>
   );
 }

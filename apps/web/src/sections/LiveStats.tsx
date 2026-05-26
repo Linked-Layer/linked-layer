@@ -2,6 +2,7 @@ import { Activity, Boxes, Coins, Layers, LineChart, TrendingUp } from "lucide-re
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CountUp } from "@/components/motion";
 import { useSolanaStats } from "@/hooks/useSolanaStats";
 import { useTokenStats } from "@/hooks/useTokenStats";
 import { BRAND } from "@/lib/brand";
@@ -59,13 +60,13 @@ export function LiveStats() {
             icon={<Boxes className="h-4 w-4" />}
             label="Current slot"
             loading={sol.isLoading}
-            value={s ? group(s.slot) : undefined}
+            count={s?.slot}
           />
           <Stat
             icon={<Activity className="h-4 w-4" />}
             label="Network TPS"
             loading={sol.isLoading}
-            value={s ? group(s.tps) : undefined}
+            count={s?.tps}
           />
         </div>
       </div>
@@ -77,6 +78,7 @@ function Stat({
   icon,
   label,
   value,
+  count,
   sub,
   loading,
   valueClass,
@@ -84,20 +86,24 @@ function Stat({
   icon: ReactNode;
   label: string;
   value?: string;
+  count?: number;
   sub?: string;
   loading?: boolean;
   valueClass?: string;
 }) {
+  const hasValue = count != null || value != null;
   return (
-    <div className="rounded-xl border border-border bg-panel-2/60 p-4">
+    <div className="rounded-xl border border-border bg-panel-2/60 p-4 transition-colors hover:border-violet/40">
       <div className="flex items-center gap-2 text-xs text-muted">
         <span className="text-violet">{icon}</span>
         {label}
       </div>
-      {loading || value == null ? (
+      {loading || !hasValue ? (
         <Skeleton className="mt-3 h-6 w-20" />
       ) : (
-        <div className={cn("mt-2 text-xl font-semibold text-white", valueClass)}>{value}</div>
+        <div className={cn("mt-2 text-xl font-semibold text-white", valueClass)}>
+          {count != null ? <CountUp value={count} format={(n) => group(Math.round(n))} /> : value}
+        </div>
       )}
       {sub && <div className="mt-1 text-xs text-muted">{sub}</div>}
     </div>

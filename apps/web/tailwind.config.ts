@@ -37,10 +37,15 @@ export default {
           "0%,100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        marquee: {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-100%)" },
+        },
       },
       animation: {
         shimmer: "shimmer 1.5s infinite",
         float: "float 6s ease-in-out infinite",
+        marquee: "marquee linear infinite",
       },
     },
   },
