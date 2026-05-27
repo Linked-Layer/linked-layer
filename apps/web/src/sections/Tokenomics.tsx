@@ -40,7 +40,7 @@ export function Tokenomics() {
       subtitle="Access is gated by holding the token; agents pay to use it; fees fuel buyback & burn."
     >
       <div className="grid items-center gap-10 lg:grid-cols-2">
-        <Reveal>
+        <Reveal variant="left">
           <div className="panel p-6">
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -79,7 +79,7 @@ export function Tokenomics() {
 
         <div className="space-y-4">
           {UTILITY.map((u, i) => (
-            <Reveal key={u.title} delay={i * 0.08}>
+            <Reveal key={u.title} delay={i * 0.08} variant="right">
               <Card className="flex gap-4">
                 <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet/15 text-violet">
                   {u.icon}

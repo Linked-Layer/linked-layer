@@ -8,7 +8,7 @@ import { config } from "@/lib/config";
 export function CTA() {
   return (
     <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
-      <Reveal>
+      <Reveal variant="scale">
         <div className="panel relative overflow-hidden p-10 text-center md:p-16">
           <div className="absolute inset-0 -z-10 bg-radial-fade" />
           <h2 className="mx-auto max-w-2xl font-serif text-4xl font-light text-white md:text-5xl">

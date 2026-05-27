@@ -46,7 +46,7 @@ export function Roadmap() {
     <Section id="roadmap" eyebrow="Roadmap" title="Where we're headed">
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
         {PHASES.map((p, i) => (
-          <Reveal key={p.phase} delay={i * 0.08}>
+          <Reveal key={p.phase} delay={i * 0.08} variant="scale">
             <div className="panel h-full p-6">
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-violet">{p.phase}</span>
