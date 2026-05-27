@@ -180,9 +180,13 @@ export function MorphField({ progress, chapters, className }: { progress: Motion
       else if (within > 1 - edge) a = (1 - within) / edge;
       const assembly = smoothstep(a);
 
-      const size = Math.min(w, h) * 0.62;
-      const ox = (w - size) / 2;
-      const oy = (h - size) / 2;
+      // Assemble the shape OFF to the side of the text: right on desktop, top on mobile.
+      const narrow = w < 768;
+      const size = Math.min(w, h) * (narrow ? 0.5 : 0.46);
+      const cxr = narrow ? w * 0.5 : w * 0.72;
+      const cyr = narrow ? h * 0.26 : h * 0.5;
+      const ox = cxr - size / 2;
+      const oy = cyr - size / 2;
       const shape = shapes[idx]!;
 
       ctx.clearRect(0, 0, w, h);
@@ -238,7 +242,8 @@ export function MorphField({ progress, chapters, className }: { progress: Motion
         ctx.fill();
       }
 
-      if (running && !reduce) raf = requestAnimationFrame(draw);
+      if (running && !reduce && !(window as unknown as { __freezeCanvas?: boolean }).__freezeCanvas)
+        raf = requestAnimationFrame(draw);
     };
     draw();
 

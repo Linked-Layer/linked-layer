@@ -41,7 +41,7 @@ export function WordReveal({
         <span key={i} className="inline-block overflow-hidden align-bottom" aria-hidden>
           <motion.span variants={wordUp} className="inline-block">
             {w}
-            {i < words.length - 1 ? " " : ""}
+            {i < words.length - 1 ? " " : ""}
           </motion.span>
         </span>
       ))}
@@ -49,22 +49,35 @@ export function WordReveal({
   );
 }
 
-/** Reveals a string character-by-character (rise + blur, staggered). For the
- * journey words, played on mount so each chapter swap animates in distinctly. */
+/**
+ * Reveals a string character-by-character (rise + blur, staggered), grouped by
+ * word so lines only ever break at spaces. Played on mount, so each journey
+ * chapter swap animates in distinctly from the section reveals.
+ */
 export function CharReveal({ text, className }: { text: string; className?: string }) {
+  const words = text.split(" ");
+  let n = 0;
   return (
     <span className={className} aria-label={text}>
-      {[...text].map((c, i) => (
-        <motion.span
-          key={i}
-          className="inline-block"
-          initial={{ y: "70%", opacity: 0, filter: "blur(10px)" }}
-          animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-          transition={{ duration: 0.5, delay: i * 0.035, ease: [0.22, 1, 0.36, 1] }}
-          aria-hidden
-        >
-          {c === " " ? " " : c}
-        </motion.span>
+      {words.map((word, wi) => (
+        <span key={wi} className="inline-block whitespace-nowrap">
+          {[...word].map((c) => {
+            const d = n++;
+            return (
+              <motion.span
+                key={d}
+                className="inline-block"
+                initial={{ y: "70%", opacity: 0, filter: "blur(10px)" }}
+                animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+                transition={{ duration: 0.5, delay: d * 0.035, ease: [0.22, 1, 0.36, 1] }}
+                aria-hidden
+              >
+                {c}
+              </motion.span>
+            );
+          })}
+          {wi < words.length - 1 ? " " : ""}
+        </span>
       ))}
     </span>
   );

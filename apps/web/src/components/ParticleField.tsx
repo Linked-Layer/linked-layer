@@ -133,7 +133,8 @@ export function ParticleField({ className }: { className?: string }) {
         ctx.fill();
       }
 
-      if (running && !reduce) raf = requestAnimationFrame(draw);
+      if (running && !reduce && !(window as unknown as { __freezeCanvas?: boolean }).__freezeCanvas)
+        raf = requestAnimationFrame(draw);
     };
     draw();
 

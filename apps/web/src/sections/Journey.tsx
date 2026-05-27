@@ -59,8 +59,9 @@ export function Journey() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -50, filter: "blur(12px)" }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center"
+            className="absolute inset-0 flex flex-col items-center justify-end px-6 pb-28 text-center md:items-start md:justify-center md:pb-0 md:pl-[8%] md:text-left"
           >
+            <div className="w-full md:max-w-[48%]">
             <motion.div
               className="mb-5 text-sm font-medium tracking-[0.25em] text-violet"
               initial={{ opacity: 0, y: 10 }}
@@ -70,7 +71,7 @@ export function Journey() {
               {c.kicker.toUpperCase()}
             </motion.div>
 
-            <h2 className="font-serif text-[15vw] font-light leading-[0.95] text-white md:text-[8.5rem]">
+            <h2 className="font-serif text-[13vw] font-light leading-[0.95] text-white md:text-[6rem]">
               <CharReveal text={c.word} />
             </h2>
 
@@ -114,6 +115,7 @@ export function Journey() {
                 </a>
               </motion.div>
             )}
+            </div>
           </motion.div>
         </AnimatePresence>
 
