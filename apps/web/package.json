@@ -12,11 +12,7 @@
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.1.0",
     "@fontsource-variable/inter": "^5.1.1",
-    "@reown/appkit": "^1.6.8",
-    "@reown/appkit-adapter-solana": "^1.6.8",
-    "@solana/web3.js": "^1.98.0",
     "@tanstack/react-query": "^5.62.7",
-    "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^11.15.0",

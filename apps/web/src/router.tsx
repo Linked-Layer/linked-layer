@@ -1,4 +1,5 @@
 import { Outlet, createBrowserRouter } from "react-router-dom";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { DemoPage } from "@/pages/DemoPage";
 import { Home } from "@/pages/Home";
 import { RoadmapPage } from "@/pages/RoadmapPage";
@@ -10,6 +11,7 @@ function RootLayout() {
   return (
     <SmoothScroll>
       <Outlet />
+      <ScrollToTop />
     </SmoothScroll>
   );
 }

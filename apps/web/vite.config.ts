@@ -24,8 +24,6 @@ export default defineConfig({
         // Split heavy vendors so the initial app bundle stays lean.
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
-          if (id.includes("@reown") || id.includes("@solana") || id.includes("@walletconnect") || id.includes("valtio"))
-            return "wallet";
           if (id.includes("recharts") || id.includes("d3-")) return "charts";
           if (id.includes("framer-motion")) return "motion";
           if (id.includes("react")) return "react";

@@ -1,5 +1,5 @@
 import Lenis from "lenis";
-import { type ReactNode, createContext, useContext, useEffect, useRef } from "react";
+import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 const LenisContext = createContext<Lenis | null>(null);
@@ -11,6 +11,7 @@ export const useLenis = () => useContext(LenisContext);
  */
 export function SmoothScroll({ children }: { children: ReactNode }) {
   const lenisRef = useRef<Lenis | null>(null);
+  const [lenisState, setLenisState] = useState<Lenis | null>(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -21,6 +22,8 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
       touchMultiplier: 1.6,
     });
     lenisRef.current = lenis;
+    setLenisState(lenis);
+    (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
 
     let raf = 0;
     const loop = (time: number) => {
@@ -46,6 +49,7 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
       document.removeEventListener("click", onClick);
       lenis.destroy();
       lenisRef.current = null;
+      setLenisState(null);
     };
   }, []);
 
@@ -63,5 +67,5 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
     lenis.scrollTo(0, { immediate: true });
   }, [location.pathname, location.hash]);
 
-  return <LenisContext.Provider value={lenisRef.current}>{children}</LenisContext.Provider>;
+  return <LenisContext.Provider value={lenisState}>{children}</LenisContext.Provider>;
 }

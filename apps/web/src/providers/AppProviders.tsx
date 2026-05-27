@@ -1,9 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { initAppKit } from "./appkit";
-
-// Initialize wallet kit at module load (no-op without a project id).
-initAppKit();
 
 const queryClient = new QueryClient({
   defaultOptions: {
