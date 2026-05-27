@@ -49,6 +49,27 @@ export function WordReveal({
   );
 }
 
+/** Reveals a string character-by-character (rise + blur, staggered). For the
+ * journey words, played on mount so each chapter swap animates in distinctly. */
+export function CharReveal({ text, className }: { text: string; className?: string }) {
+  return (
+    <span className={className} aria-label={text}>
+      {[...text].map((c, i) => (
+        <motion.span
+          key={i}
+          className="inline-block"
+          initial={{ y: "70%", opacity: 0, filter: "blur(10px)" }}
+          animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+          transition={{ duration: 0.5, delay: i * 0.035, ease: [0.22, 1, 0.36, 1] }}
+          aria-hidden
+        >
+          {c === " " ? " " : c}
+        </motion.span>
+      ))}
+    </span>
+  );
+}
+
 /** Soft fade-in for supporting copy (lines), with a gentle upward drift. */
 export function LineReveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
