@@ -8,10 +8,10 @@ import { XIcon } from "@/components/icons";
 import { config } from "@/lib/config";
 
 const NAV = [
-  { label: "Product", href: "/#how" },
-  { label: "Demo", href: "/#demo" },
-  { label: "Tokenomics", href: "/#tokenomics" },
-  { label: "Roadmap", href: "/#roadmap" },
+  { label: "Home", href: "/" },
+  { label: "Demo", href: "/demo" },
+  { label: "Tokenomics", href: "/tokenomics" },
+  { label: "Roadmap", href: "/roadmap" },
   { label: "Whitepaper", href: "/whitepaper" },
 ];
 
@@ -65,14 +65,14 @@ export function Header() {
         >
           <div className="flex flex-col gap-3">
             {NAV.map((n) => (
-              <a
+              <Link
                 key={n.label}
-                href={n.href}
+                to={n.href}
                 onClick={() => setOpen(false)}
                 className="py-1 text-sm text-slate-200"
               >
                 {n.label}
-              </a>
+              </Link>
             ))}
             <div className="flex items-center gap-3 pt-2">
               <a href={config.links.twitter} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">

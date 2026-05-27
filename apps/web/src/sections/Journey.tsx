@@ -1,7 +1,7 @@
 import { type MotionValue, motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
-import { ParticleField } from "@/components/ParticleField";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 interface Chapter {
@@ -63,11 +63,10 @@ export function Journey() {
   return (
     <section ref={ref} style={{ height: `${n * 100}vh` }} className="relative">
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
-        <ParticleField className="absolute inset-0 h-full w-full opacity-70" />
         {CHAPTERS.map((c, i) => (
           <BgLayer key={i} progress={scrollYProgress} i={i} n={n} bg={c.bg} />
         ))}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-bg/40 via-transparent to-bg" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-bg/30 via-transparent to-bg/70" />
 
         {CHAPTERS.map((c, i) => (
           <ChapterView key={i} progress={scrollYProgress} i={i} n={n} chapter={c} />
@@ -92,14 +91,21 @@ function ChapterView({ progress, i, n, chapter }: { progress: MotionValue<number
       ? [c - s * 0.5, c - s * 0.5 + f, 1]
       : [c - s * 0.5, c - s * 0.5 + f, c + s * 0.5 - f, c + s * 0.5];
   const op = first ? [1, 1, 0] : last ? [0, 1, 1] : [0, 1, 1, 0];
-  const yo = first ? [0, 0, -60] : last ? [60, 0, 0] : [60, 0, 0, -60];
-  const sc = first ? [1, 1, 1.03] : last ? [0.97, 1, 1] : [0.97, 1, 1, 1.03];
+  const yo = first ? [0, 0, -80] : last ? [80, 0, 0] : [80, 0, 0, -80];
+  const sc = first ? [1, 1, 1.06] : last ? [0.92, 1, 1] : [0.92, 1, 1, 1.06];
+  const bl = first ? ["blur(0px)", "blur(0px)", "blur(14px)"] : last ? ["blur(14px)", "blur(0px)", "blur(0px)"] : ["blur(16px)", "blur(0px)", "blur(0px)", "blur(16px)"];
+  const rx = first ? [0, 0, -12] : last ? [12, 0, 0] : [12, 0, 0, -12];
   const opacity = useTransform(progress, inp, op);
   const y = useTransform(progress, inp, yo);
   const scale = useTransform(progress, inp, sc);
+  const filter = useTransform(progress, inp, bl);
+  const rotateX = useTransform(progress, inp, rx);
 
   return (
-    <motion.div style={{ opacity, y, scale }} className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+    <motion.div
+      style={{ opacity, y, scale, filter, rotateX, transformPerspective: 1200 }}
+      className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center"
+    >
       <div className="mb-5 text-sm font-medium tracking-[0.25em] text-muted">{chapter.kicker.toUpperCase()}</div>
       <h2 className="font-serif text-[15vw] font-light leading-[0.95] text-white md:text-[8.5rem]">{chapter.word}</h2>
       {chapter.sentence && (
@@ -116,11 +122,11 @@ function ChapterView({ progress, i, n, chapter }: { progress: MotionValue<number
       )}
       {chapter.cta && (
         <div className="pointer-events-auto mt-10 flex flex-wrap items-center justify-center gap-3">
-          <a href="#demo">
+          <Link to="/demo">
             <Button size="lg">
               Launch demo <ArrowUpRight className="h-4 w-4" />
             </Button>
-          </a>
+          </Link>
           <a href="#how">
             <Button variant="outline" size="lg">
               How it works

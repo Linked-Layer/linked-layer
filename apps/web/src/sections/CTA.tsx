@@ -23,11 +23,11 @@ export function CTA() {
                 Buy {BRAND.symbol} <ArrowRight className="h-4 w-4" />
               </Button>
             </a>
-            <a href="#demo">
+            <Link to="/demo">
               <Button variant="outline" size="lg">
                 Try the demo
               </Button>
-            </a>
+            </Link>
             <Link to="/whitepaper">
               <Button variant="ghost" size="lg">
                 Read whitepaper

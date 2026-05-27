@@ -24,9 +24,10 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold text-white">Product</h4>
           <ul className="mt-3 space-y-2 text-sm text-muted">
-            <li><a href="/#how" className="hover:text-white">How it works</a></li>
-            <li><a href="/#demo" className="hover:text-white">Live demo</a></li>
-            <li><a href="/#tokenomics" className="hover:text-white">Tokenomics</a></li>
+            <li><Link to="/" className="hover:text-white">Home</Link></li>
+            <li><Link to="/demo" className="hover:text-white">Live demo</Link></li>
+            <li><Link to="/tokenomics" className="hover:text-white">Tokenomics</Link></li>
+            <li><Link to="/roadmap" className="hover:text-white">Roadmap</Link></li>
             <li><Link to="/whitepaper" className="hover:text-white">Whitepaper</Link></li>
           </ul>
         </div>
@@ -39,7 +40,7 @@ export function Footer() {
                 Chart (DexScreener)
               </a>
             </li>
-            <li><a href="/#tokenomics" className="hover:text-white">{BRAND.symbol} utility</a></li>
+            <li><Link to="/tokenomics" className="hover:text-white">{BRAND.symbol} utility</Link></li>
             <li><span>Built on {BRAND.chain}</span></li>
           </ul>
         </div>
