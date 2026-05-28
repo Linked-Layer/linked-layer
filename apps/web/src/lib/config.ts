@@ -9,6 +9,11 @@ const sameOrigin = env.PROD && typeof window !== "undefined" ? window.location.o
 export const config = {
   /** Backend Context API base URL. Empty (dev, no backend) → scripted fallback. */
   apiUrl: rawApiUrl || sameOrigin,
+  /**
+   * Pre-token "soft launch": site is live but the chat runs as a scripted demo and
+   * the wallet gate is OFF (no real $LINKED check). Flip to false at token launch.
+   */
+  softLaunch: ((env.VITE_SOFT_LAUNCH as string | undefined) ?? "") === "true",
   /** Public, read-only demo API key (rate-limited) for the "ask the company" widget. */
   demoKey: (env.VITE_DEMO_KEY as string | undefined) ?? "",
   /** Demo workspace slug. */

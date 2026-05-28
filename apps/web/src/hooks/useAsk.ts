@@ -1,6 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 import { type RecallSource, streamAsk } from "@/lib/api";
-import { isLive } from "@/lib/config";
+import { config, isLive } from "@/lib/config";
+
+/** Live LLM chat only when a backend is configured AND not in pre-token soft launch. */
+const isChatLive = () => isLive.api() && !config.softLaunch;
 
 export type AskStatus = "idle" | "streaming" | "done" | "error";
 
@@ -26,7 +29,7 @@ export function useAsk() {
     status: "idle",
     answer: "",
     sources: [],
-    live: isLive.api(),
+    live: isChatLive(),
     error: null,
   });
   const abortRef = useRef<AbortController | null>(null);
@@ -35,9 +38,9 @@ export function useAsk() {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-    setState({ status: "streaming", answer: "", sources: [], live: isLive.api(), error: null });
+    setState({ status: "streaming", answer: "", sources: [], live: isChatLive(), error: null });
 
-    if (!isLive.api()) {
+    if (!isChatLive()) {
       // Scripted fallback: reveal canned sources, then type the answer.
       setState((s) => ({ ...s, sources: FALLBACK_SOURCES }));
       const words = FALLBACK_ANSWER.split(" ");

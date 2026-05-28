@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAsk } from "@/hooks/useAsk";
 import { BRAND } from "@/lib/brand";
-import { isLive } from "@/lib/config";
+import { config, isLive } from "@/lib/config";
 import { useWalletCtx } from "@/providers/Wallet";
 
 const SUGGESTIONS = [
@@ -20,8 +20,9 @@ export function AskCompanyDemo() {
   const { state, ask } = useAsk();
   const [q, setQ] = useState("");
 
-  // When the backend is live, the chat is gated STRICTLY by a verified $LINKED wallet.
-  const gated = isLive.api() && !verified;
+  // When the backend is live (and NOT in pre-token soft launch), the chat is gated
+  // STRICTLY by a verified $LINKED wallet. In soft launch the chat is an open demo.
+  const gated = !config.softLaunch && isLive.api() && !verified;
 
   const submit = (question: string) => {
     const text = question.trim();
