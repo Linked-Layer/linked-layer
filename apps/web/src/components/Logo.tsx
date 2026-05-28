@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 /** Linked Layer brand mark (gradient monogram, generated from the provided logo). */
 export function LogoMark({ className }: { className?: string }) {
-  return <img src="/logo.svg" alt="" aria-hidden="true" className={cn("h-8 w-8", className)} />;
+  return <img src="/logo.svg" alt="" aria-hidden="true" className={cn("h-7 w-auto", className)} />;
 }
 
 export function LogoWord({ className }: { className?: string }) {
