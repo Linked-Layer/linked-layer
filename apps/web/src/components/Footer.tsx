@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom";
 import { LogoWord } from "@/components/Logo";
 import { XIcon } from "@/components/icons";
 import { BRAND } from "@/lib/brand";
 import { config } from "@/lib/config";
+import { useNav } from "@/providers/Nav";
 
 export function Footer() {
+  const { navigate } = useNav();
   return (
     <footer className="border-t border-border bg-panel/40">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr]">
@@ -24,11 +25,11 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold text-white">Product</h4>
           <ul className="mt-3 space-y-2 text-sm text-muted">
-            <li><Link to="/" className="hover:text-white">Home</Link></li>
-            <li><Link to="/demo" className="hover:text-white">Live demo</Link></li>
-            <li><Link to="/tokenomics" className="hover:text-white">Tokenomics</Link></li>
-            <li><Link to="/roadmap" className="hover:text-white">Roadmap</Link></li>
-            <li><Link to="/whitepaper" className="hover:text-white">Whitepaper</Link></li>
+            <li><button onClick={() => navigate("home")} className="hover:text-white">Home</button></li>
+            <li><button onClick={() => navigate("chat")} className="hover:text-white">Chat</button></li>
+            <li><button onClick={() => navigate("tokenomics")} className="hover:text-white">Tokenomics</button></li>
+            <li><button onClick={() => navigate("roadmap")} className="hover:text-white">Roadmap</button></li>
+            <li><button onClick={() => navigate("whitepaper")} className="hover:text-white">Whitepaper</button></li>
           </ul>
         </div>
 
@@ -40,7 +41,7 @@ export function Footer() {
                 Chart (DexScreener)
               </a>
             </li>
-            <li><Link to="/tokenomics" className="hover:text-white">{BRAND.symbol} utility</Link></li>
+            <li><button onClick={() => navigate("tokenomics")} className="hover:text-white">{BRAND.symbol} utility</button></li>
             <li><span>Built on {BRAND.chain}</span></li>
           </ul>
         </div>

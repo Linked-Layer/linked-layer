@@ -8,6 +8,7 @@ interface SolanaProvider {
   isBackpack?: boolean;
   connect: (opts?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: { toString(): string } }>;
   disconnect: () => Promise<void>;
+  signMessage?: (message: Uint8Array, display?: string) => Promise<{ signature: Uint8Array } | Uint8Array>;
   on?: (event: string, cb: () => void) => void;
   off?: (event: string, cb: () => void) => void;
 }
@@ -83,10 +84,22 @@ export function useWallet() {
     setActive(null);
   }, [active]);
 
+  /** Ask the connected wallet to sign a UTF-8 message; returns the raw signature bytes. */
+  const signMessage = useCallback(
+    async (message: string): Promise<Uint8Array> => {
+      if (!active?.signMessage) throw new Error("This wallet does not support message signing");
+      const res = await active.signMessage(new TextEncoder().encode(message), "utf8");
+      // Phantom/Solflare return { signature }; Backpack may return the bytes directly.
+      const sig = (res as { signature?: Uint8Array }).signature ?? (res as Uint8Array);
+      return sig;
+    },
+    [active],
+  );
+
   const short = useMemo(
     () => (address ? `${address.slice(0, 4)}…${address.slice(-4)}` : null),
     [address],
   );
 
-  return { wallets, address, short, connecting, connect, disconnect, connected: !!address };
+  return { wallets, address, short, connecting, connect, disconnect, signMessage, connected: !!address };
 }

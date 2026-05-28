@@ -1,4 +1,5 @@
 export { type TokenGate, StubTokenGate, getTokenGate } from "./tokenGate";
+export { SolanaTokenGate } from "./solana";
 export {
   type PaymentGate,
   type X402Challenge,

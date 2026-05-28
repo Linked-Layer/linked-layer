@@ -1,11 +1,12 @@
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Reveal } from "@/components/Reveal";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
 import { config } from "@/lib/config";
+import { useNav } from "@/providers/Nav";
 
 export function CTA() {
+  const { navigate } = useNav();
   return (
     <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
       <Reveal variant="scale">
@@ -23,16 +24,12 @@ export function CTA() {
                 Buy {BRAND.symbol} <ArrowRight className="h-4 w-4" />
               </Button>
             </a>
-            <Link to="/demo">
-              <Button variant="outline" size="lg">
-                Try the demo
-              </Button>
-            </Link>
-            <Link to="/whitepaper">
-              <Button variant="ghost" size="lg">
-                Read whitepaper
-              </Button>
-            </Link>
+            <Button variant="outline" size="lg" onClick={() => navigate("chat")}>
+              Open the chat
+            </Button>
+            <Button variant="ghost" size="lg" onClick={() => navigate("whitepaper")}>
+              Read whitepaper
+            </Button>
           </div>
         </div>
       </Reveal>

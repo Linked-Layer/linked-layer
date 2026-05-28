@@ -1,7 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { config } from "@recall/core";
 import type { DistillStatus } from "@recall/core";
 import { dedupeFacts } from "./dedupe";
+import { type LlmClient, getLlm } from "./llm";
 import { DISTILL_SYSTEM, distillUserPrompt } from "./prompts";
 
 export interface DistilledFact {
@@ -22,35 +21,23 @@ export interface DistillInput {
 
 const VALID_STATUS: DistillStatus[] = ["proposed", "decided", "in_progress", "done", "superseded", "blocked"];
 
-let client: Anthropic | null = null;
-function llm(): Anthropic | null {
-  if (!config.llm.apiKey) return null;
-  client ??= new Anthropic({ apiKey: config.llm.apiKey });
-  return client;
-}
-
 /** Distill one artifact into durable facts (LLM-backed, heuristic fallback). */
 export async function distillItem(input: DistillInput): Promise<DistilledFact[]> {
-  const api = llm();
-  const facts = api ? await distillWithLlm(api, input) : distillHeuristic(input);
+  const llm = getLlm();
+  const facts = llm ? await distillWithLlm(llm, input) : distillHeuristic(input);
   return dedupeFacts(facts);
 }
 
-async function distillWithLlm(api: Anthropic, input: DistillInput): Promise<DistilledFact[]> {
+async function distillWithLlm(llm: LlmClient, input: DistillInput): Promise<DistilledFact[]> {
   try {
-    const msg = await api.messages.create({
-      model: config.llm.model,
-      max_tokens: 1024,
+    const text = await llm.complete({
       system: DISTILL_SYSTEM,
-      messages: [{ role: "user", content: distillUserPrompt(input.title, input.body, input.metadata) }],
+      user: distillUserPrompt(input.title, input.body, input.metadata),
+      maxTokens: 1024,
     });
-    const text = msg.content
-      .filter((b): b is Anthropic.TextBlock => b.type === "text")
-      .map((b) => b.text)
-      .join("");
     return parseFacts(text);
   } catch (err) {
-    console.warn("[distill] LLM call failed, falling back to heuristic:", (err as Error).message);
+    console.warn(`[distill] LLM call failed (${llm.provider}), falling back to heuristic:`, (err as Error).message);
     return distillHeuristic(input);
   }
 }

@@ -34,7 +34,6 @@ const UTILITY = [
 export function Tokenomics() {
   return (
     <Section
-      id="tokenomics"
       eyebrow="Tokenomics"
       title={<>The {BRAND.symbol} flywheel</>}
       subtitle="Access is gated by holding the token; agents pay to use it; fees fuel buyback & burn."

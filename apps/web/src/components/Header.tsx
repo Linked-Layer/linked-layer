@@ -1,42 +1,48 @@
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { LogoWord } from "@/components/Logo";
 import { WalletButton } from "@/components/WalletButton";
 import { XIcon } from "@/components/icons";
 import { config } from "@/lib/config";
+import { type View, useNav } from "@/providers/Nav";
 
-const NAV = [
-  { label: "Home", href: "/" },
-  { label: "Demo", href: "/demo" },
-  { label: "Tokenomics", href: "/tokenomics" },
-  { label: "Roadmap", href: "/roadmap" },
-  { label: "Whitepaper", href: "/whitepaper" },
+const NAV: { label: string; view: View }[] = [
+  { label: "Home", view: "home" },
+  { label: "Chat", view: "chat" },
+  { label: "Tokenomics", view: "tokenomics" },
+  { label: "Roadmap", view: "roadmap" },
+  { label: "Whitepaper", view: "whitepaper" },
 ];
 
 export function Header() {
+  const { view, navigate } = useNav();
   const [open, setOpen] = useState(false);
+
+  const go = (next: View) => {
+    navigate(next);
+    setOpen(false);
+  };
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-border/60 bg-bg/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-        <Link to="/" className="text-base">
+        <button onClick={() => go("home")} className="text-base" aria-label="Home">
           <LogoWord />
-        </Link>
+        </button>
 
         <nav className="hidden items-center gap-7 md:flex">
-          {NAV.map((n) =>
-            n.href.startsWith("/#") ? (
-              <a key={n.label} href={n.href} className="text-sm text-muted transition-colors hover:text-white">
-                {n.label}
-              </a>
-            ) : (
-              <Link key={n.label} to={n.href} className="text-sm text-muted transition-colors hover:text-white">
-                {n.label}
-              </Link>
-            ),
-          )}
+          {NAV.map((n) => (
+            <button
+              key={n.label}
+              onClick={() => go(n.view)}
+              className={`text-sm transition-colors hover:text-white ${
+                view === n.view ? "text-white" : "text-muted"
+              }`}
+            >
+              {n.label}
+            </button>
+          ))}
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
@@ -65,14 +71,13 @@ export function Header() {
         >
           <div className="flex flex-col gap-3">
             {NAV.map((n) => (
-              <Link
+              <button
                 key={n.label}
-                to={n.href}
-                onClick={() => setOpen(false)}
-                className="py-1 text-sm text-slate-200"
+                onClick={() => go(n.view)}
+                className={`py-1 text-left text-sm ${view === n.view ? "text-white" : "text-slate-200"}`}
               >
                 {n.label}
-              </Link>
+              </button>
             ))}
             <div className="flex items-center gap-3 pt-2">
               <a href={config.links.twitter} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">

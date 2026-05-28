@@ -14,6 +14,30 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   app.decorateRequest("auth", undefined);
+  app.decorateRequest("walletHolder", undefined);
+
+  // CORS — the frontend calls this API cross-origin. No cookies are used (auth is via
+  // headers), so credentials aren't needed and a wildcard / allow-list is safe.
+  const corsList = config.api.corsOrigins.split(",").map((o) => o.trim()).filter(Boolean);
+  const allowAll = corsList.includes("*");
+  app.addHook("onRequest", (req, reply, done) => {
+    const origin = req.headers.origin;
+    if (origin && (allowAll || corsList.includes(origin))) {
+      reply.header("access-control-allow-origin", allowAll ? "*" : origin);
+      reply.header("vary", "Origin");
+      reply.header("access-control-allow-methods", "GET,POST,DELETE,OPTIONS");
+      reply.header(
+        "access-control-allow-headers",
+        "authorization,content-type,x-linked-session,x-recall-holder,x-admin-token",
+      );
+      reply.header("access-control-max-age", "86400");
+    }
+    if (req.method === "OPTIONS") {
+      reply.code(204).send();
+      return;
+    }
+    done();
+  });
 
   await app.register(rateLimit, {
     max: config.api.rateLimitMax,

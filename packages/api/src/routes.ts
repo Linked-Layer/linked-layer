@@ -6,6 +6,8 @@ import {
   connectorConfigSchema,
   recallRequestSchema,
   searchRequestSchema,
+  walletChallengeSchema,
+  walletVerifySchema,
   writeRequestSchema,
 } from "@recall/core";
 import {
@@ -19,17 +21,20 @@ import {
 } from "@recall/db";
 import {
   ask,
+  createWalletChallenge,
   issueApiKey,
   listConnectors,
   listWorkspaceKeys,
   recall,
   revokeWorkspaceKey,
+  verifyWalletAndIssueSession,
   writeMemory,
 } from "@recall/engine";
 import { enqueueIngest } from "@recall/worker";
 import type { FastifyInstance } from "fastify";
 import { authenticate, requireAdmin, requireScope, resolveWorkspace } from "./middleware/auth";
 import { getHolder, requireToken } from "./middleware/gating";
+import { resolveSession } from "./middleware/session";
 import { requirePayment } from "./middleware/x402";
 
 function parsePage(q: { limit?: string; offset?: string }): { limit: number; offset: number } {
@@ -51,10 +56,25 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
+  // ---- wallet ownership (Sign-In-with-Solana) — public; these ARE the auth ----
+  app.post("/v1/wallet/challenge", async (req) => {
+    const body = walletChallengeSchema.parse(req.body);
+    return createWalletChallenge(body.address);
+  });
+
+  app.post("/v1/wallet/verify", async (req) => {
+    const body = walletVerifySchema.parse(req.body);
+    return verifyWalletAndIssueSession({
+      address: body.address,
+      signatureBase64: body.signature,
+      nonce: body.nonce,
+    });
+  });
+
   // ---- core: recall(query, scope) — authenticated + gated + pay-per-call ----
   app.post(
     "/v1/recall",
-    { preHandler: [authenticate, requireScope("recall"), requireToken, requirePayment] },
+    { preHandler: [authenticate, resolveSession, requireScope("recall"), requireToken, requirePayment] },
     async (req) => {
       const body = recallRequestSchema.parse(req.body);
       const workspace = resolveWorkspace(req, body.scope.workspace);
@@ -65,7 +85,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   // ---- raw hybrid search ----
   app.post(
     "/v1/search",
-    { preHandler: [authenticate, requireScope("search"), requireToken, requirePayment] },
+    { preHandler: [authenticate, resolveSession, requireScope("search"), requireToken, requirePayment] },
     async (req) => {
       const body = searchRequestSchema.parse(req.body);
       const workspace = resolveWorkspace(req, body.scope.workspace);
@@ -86,7 +106,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // ---- "ask the company" (SSE stream) ----
-  app.post("/v1/ask", { preHandler: [authenticate, requireScope("ask"), requireToken] }, async (req, reply) => {
+  app.post("/v1/ask", { preHandler: [authenticate, resolveSession, requireScope("ask"), requireToken] }, async (req, reply) => {
     const body = askRequestSchema.parse(req.body);
     const handle = await ask({
       question: body.question,

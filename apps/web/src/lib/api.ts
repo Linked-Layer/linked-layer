@@ -1,4 +1,5 @@
 import { config } from "./config";
+import { getSessionToken } from "./walletAuth";
 
 export interface RecallSource {
   nodeId: string;
@@ -20,12 +21,14 @@ export interface AskCallbacks {
  * Parses `event:`/`data:` frames from the response body.
  */
 export async function streamAsk(question: string, cb: AskCallbacks, signal?: AbortSignal): Promise<void> {
+  const session = getSessionToken();
   const res = await fetch(`${config.apiUrl}/v1/ask`, {
     method: "POST",
     signal,
     headers: {
       "content-type": "application/json",
       ...(config.demoKey ? { authorization: `Bearer ${config.demoKey}` } : {}),
+      ...(session ? { "x-linked-session": session } : {}),
     },
     body: JSON.stringify({ question, scope: { workspace: config.demoWorkspace } }),
   });

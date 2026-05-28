@@ -10,3 +10,5 @@ export { issueApiKey, authenticateBearer, listWorkspaceKeys, revokeWorkspaceKey 
 export type { IssueKeyParams, IssuedKey } from "./auth";
 export { listConnectors } from "./connectors";
 export type { ConnectorSummary } from "./connectors";
+export { createWalletChallenge, verifyWalletAndIssueSession, resolveWalletSession } from "./wallet";
+export type { WalletChallenge, WalletSession, VerifyWalletParams } from "./wallet";

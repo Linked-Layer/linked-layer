@@ -50,6 +50,20 @@ export const apiKeyCreateSchema = z.object({
   scopes: z.array(z.enum(["recall", "search", "ask", "write", "admin"])).optional(),
 });
 
+// Wallet ownership (Sign-In-with-Solana). A Solana address is 32–44 base58 chars.
+export const walletChallengeSchema = z.object({
+  address: z.string().min(32).max(44),
+});
+
+export const walletVerifySchema = z.object({
+  address: z.string().min(32).max(44),
+  /** base64-encoded Ed25519 signature of the challenge message. */
+  signature: z.string().min(1),
+  nonce: z.string().min(1),
+});
+
+export type WalletChallengeInput = z.infer<typeof walletChallengeSchema>;
+export type WalletVerifyInput = z.infer<typeof walletVerifySchema>;
 export type ApiKeyCreateInput = z.infer<typeof apiKeyCreateSchema>;
 export type RecallRequestInput = z.infer<typeof recallRequestSchema>;
 export type SearchRequestInput = z.infer<typeof searchRequestSchema>;

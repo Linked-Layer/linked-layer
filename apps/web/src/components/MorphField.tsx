@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 
 type Pt = { x: number; y: number };
 
-const COUNT = 240;
+const COUNT = 320;
 
 /** Sample `count` normalized points (0..1) from a drawn silhouette. */
 function sampleDrawing(draw: (ctx: CanvasRenderingContext2D, w: number, h: number) => void, count: number): Pt[] {
@@ -180,11 +180,12 @@ export function MorphField({ progress, chapters, className }: { progress: Motion
       else if (within > 1 - edge) a = (1 - within) / edge;
       const assembly = smoothstep(a);
 
-      // Assemble the shape OFF to the side of the text: right on desktop, top on mobile.
+      // Assemble the shape LARGE and CENTERED, as a backdrop behind the text
+      // (a glass panel sits over the middle, blurring the shape for legibility).
       const narrow = w < 768;
-      const size = Math.min(w, h) * (narrow ? 0.5 : 0.46);
-      const cxr = narrow ? w * 0.5 : w * 0.72;
-      const cyr = narrow ? h * 0.26 : h * 0.5;
+      const size = Math.min(w, h) * (narrow ? 0.86 : 0.7);
+      const cxr = w * 0.5;
+      const cyr = h * 0.5;
       const ox = cxr - size / 2;
       const oy = cyr - size / 2;
       const shape = shapes[idx]!;
@@ -218,7 +219,7 @@ export function MorphField({ progress, chapters, className }: { progress: Motion
       }
 
       // links — denser when assembled (so the picture reads)
-      const linkDist = 26 + assembly * 30;
+      const linkDist = 30 + assembly * 38;
       for (let i = 0; i < ps.length; i++) {
         for (let j = i + 1; j < ps.length; j++) {
           const a1 = ps[i]!;

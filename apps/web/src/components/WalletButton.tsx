@@ -1,11 +1,14 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { LogOut, Wallet } from "lucide-react";
+import { BadgeCheck, Loader2, LogOut, ShieldCheck, Wallet } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useWallet } from "@/hooks/useWallet";
+import { BRAND } from "@/lib/brand";
+import { isLive } from "@/lib/config";
+import { useWalletCtx } from "@/providers/Wallet";
 
 export function WalletButton() {
-  const { wallets, connected, short, connecting, connect, disconnect } = useWallet();
+  const { wallets, connected, short, connecting, connect, disconnect, verified, session, verifying, verifyError, verify } =
+    useWalletCtx();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -17,10 +20,15 @@ export function WalletButton() {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  const handleDisconnect = () => {
+    disconnect();
+    setOpen(false);
+  };
+
   return (
     <div ref={ref} className="relative">
       <Button variant={connected ? "outline" : "primary"} size="sm" onClick={() => setOpen((v) => !v)}>
-        <Wallet className="h-4 w-4" />
+        {verified ? <BadgeCheck className="h-4 w-4 text-emerald-400" /> : <Wallet className="h-4 w-4" />}
         {connecting ? "Connecting…" : connected ? short : "Connect Wallet"}
       </Button>
 
@@ -34,15 +42,39 @@ export function WalletButton() {
             className="absolute right-0 z-50 mt-2 w-60 rounded-xl border border-border bg-panel p-2 shadow-glow backdrop-blur"
           >
             {connected ? (
-              <button
-                onClick={() => {
-                  void disconnect();
-                  setOpen(false);
-                }}
-                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-200 hover:bg-panel-2"
-              >
-                <LogOut className="h-4 w-4 text-violet" /> Disconnect
-              </button>
+              <div className="space-y-1">
+                <div className="px-3 py-1.5 text-xs uppercase tracking-wider text-muted">Wallet</div>
+                <div className="truncate px-3 pb-1 text-sm text-slate-200">{short}</div>
+
+                {isLive.api() &&
+                  (verified ? (
+                    <div className="flex items-center gap-2 rounded-lg bg-panel-2 px-3 py-2 text-sm text-emerald-400">
+                      <BadgeCheck className="h-4 w-4 shrink-0" />
+                      Verified · {session!.balance.toLocaleString()} {BRAND.symbol}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={verify}
+                      disabled={verifying}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-200 hover:bg-panel-2 disabled:opacity-60"
+                    >
+                      {verifying ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-violet" />
+                      ) : (
+                        <ShieldCheck className="h-4 w-4 text-violet" />
+                      )}
+                      {verifying ? "Check your wallet…" : `Verify ${BRAND.symbol} ownership`}
+                    </button>
+                  ))}
+                {verifyError && <div className="px-3 py-1 text-xs leading-snug text-rose-400">{verifyError}</div>}
+
+                <button
+                  onClick={handleDisconnect}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-200 hover:bg-panel-2"
+                >
+                  <LogOut className="h-4 w-4 text-violet" /> Disconnect
+                </button>
+              </div>
             ) : wallets.length > 0 ? (
               <>
                 <div className="px-3 py-1.5 text-xs uppercase tracking-wider text-muted">Connect a wallet</div>

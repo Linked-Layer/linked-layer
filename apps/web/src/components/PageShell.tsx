@@ -6,18 +6,18 @@ import { Header } from "@/components/Header";
 /** Standard inner-page layout with a header, animated entrance, and footer. */
 export function PageShell({ children }: { children: ReactNode }) {
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <Header />
       <motion.main
         initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="pt-16"
+        className="flex-1 pt-16"
       >
         {children}
       </motion.main>
       <Footer />
-    </>
+    </div>
   );
 }
 

@@ -1,5 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { config } from "@recall/core";
+import { BRAND } from "@recall/core";
+import { getLlm } from "./llm";
 
 export interface AnswerContext {
   question: string;
@@ -9,7 +9,7 @@ export interface AnswerContext {
   sourceTitles: string[];
 }
 
-const ASK_SYSTEM = `You are "ask the company" for Recall. Answer the user's question using ONLY the
+const ASK_SYSTEM = `You are "ask the company" for ${BRAND.name}. Answer the user's question using ONLY the
 provided team context. Cite sources by their title in [brackets]. If the context does not contain
 the answer, say so plainly. Be concise.`;
 
@@ -17,34 +17,22 @@ function userPrompt(c: AnswerContext): string {
   return `Question: ${c.question}\n\nTeam context:\n${c.context}\n\nSources available: ${c.sourceTitles.join("; ")}`;
 }
 
-let client: Anthropic | null = null;
-function llm(): Anthropic | null {
-  if (!config.llm.apiKey) return null;
-  client ??= new Anthropic({ apiKey: config.llm.apiKey });
-  return client;
-}
-
 /** Stream an answer token-by-token. Falls back to an extractive answer with no API key. */
 export async function* answerQuestionStream(c: AnswerContext): AsyncGenerator<string> {
-  const api = llm();
-  if (!api) {
+  const llm = getLlm();
+  if (!llm) {
     yield fallbackAnswer(c);
     return;
   }
   try {
-    const stream = await api.messages.stream({
-      model: config.llm.model,
-      max_tokens: 1024,
-      system: ASK_SYSTEM,
-      messages: [{ role: "user", content: userPrompt(c) }],
-    });
-    for await (const event of stream) {
-      if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-        yield event.delta.text;
-      }
+    let emitted = false;
+    for await (const token of llm.stream({ system: ASK_SYSTEM, user: userPrompt(c), maxTokens: 1024 })) {
+      emitted = true;
+      yield token;
     }
+    if (!emitted) yield fallbackAnswer(c);
   } catch (err) {
-    console.warn("[ask] LLM stream failed, using fallback:", (err as Error).message);
+    console.warn(`[ask] LLM stream failed (${llm.provider}), using fallback:`, (err as Error).message);
     yield fallbackAnswer(c);
   }
 }

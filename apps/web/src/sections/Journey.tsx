@@ -1,10 +1,10 @@
-import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { CharReveal } from "@/components/AnimatedText";
 import { MorphField } from "@/components/MorphField";
 import { Button } from "@/components/ui/button";
+import { useNav } from "@/providers/Nav";
 
 interface Chapter {
   kicker: string;
@@ -35,6 +35,7 @@ const CHAPTERS: Chapter[] = [
 ];
 
 export function Journey() {
+  const { navigate } = useNav();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const n = CHAPTERS.length;
@@ -42,8 +43,17 @@ export function Journey() {
   useMotionValueEvent(scrollYProgress, "change", (v) => {
     setActive(Math.max(0, Math.min(n - 1, Math.floor(v * n - 0.0001))));
   });
+  // "Scroll to start" lives only at the very top — it fades out the moment you
+  // scroll and the "M" begins to form.
+  const hintOpacity = useTransform(scrollYProgress, [0, 0.06], [1, 0]);
 
   const c = CHAPTERS[active]!;
+  // First chapter is a bare full-screen title (no glass) — so "Scroll to start"
+  // reads as the intro. From the 2nd chapter on, the text settles into the glass card.
+  const isIntro = active === 0;
+  // Only the intro (chapter 0, the "M") is bare full-screen text; from "Total recall"
+  // onward the text settles into the glass + edge-light card.
+  const glassOn = !isIntro;
 
   return (
     <section ref={ref} style={{ height: `${n * 100}vh` }} className="relative">
@@ -52,18 +62,36 @@ export function Journey() {
         <MorphField progress={scrollYProgress} chapters={n} className="absolute inset-0 h-full w-full" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-bg/20 via-transparent to-bg/70" />
 
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           <motion.div
             key={active}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -50, filter: "blur(12px)" }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-0 flex flex-col items-center justify-end px-6 pb-28 text-center md:items-start md:justify-center md:pb-0 md:pl-[8%] md:text-left"
+            className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center"
           >
-            <div className="w-full md:max-w-[48%]">
             <motion.div
-              className="mb-5 text-sm font-medium tracking-[0.25em] text-violet"
+              initial={glassOn ? { scale: 1.06, opacity: 0 } : false}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className={
+                glassOn
+                  ? "relative w-full max-w-4xl rounded-[2.25rem] border border-white/[0.06] bg-white/[0.008] px-8 py-14 shadow-2xl ring-1 ring-white/[0.03] backdrop-blur-md md:px-20 md:py-24"
+                  : "relative w-full max-w-5xl"
+              }
+            >
+              {glassOn && (
+                <>
+                  {/* accent edge-light — top (violet) & bottom (cyan), brightest at center, glowing the text */}
+                  <span aria-hidden className="pointer-events-none absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-violet to-transparent" />
+                  <span aria-hidden className="pointer-events-none absolute inset-x-24 top-0 h-16 rounded-[100%] bg-violet/30 blur-2xl" />
+                  <span aria-hidden className="pointer-events-none absolute inset-x-12 bottom-0 h-px bg-gradient-to-r from-transparent via-cyan to-transparent" />
+                  <span aria-hidden className="pointer-events-none absolute inset-x-24 bottom-0 h-16 rounded-[100%] bg-cyan/25 blur-2xl" />
+                </>
+              )}
+            <motion.div
+              className="relative mb-2 text-sm font-medium tracking-[0.25em] text-violet"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
@@ -71,13 +99,17 @@ export function Journey() {
               {c.kicker.toUpperCase()}
             </motion.div>
 
-            <h2 className="font-serif text-[13vw] font-light leading-[0.95] text-white md:text-[6rem]">
+            <h2
+              className={`font-serif font-light leading-[0.95] text-white ${
+                isIntro ? "text-[16vw] md:text-[8.5rem]" : "text-[13vw] md:text-[6rem]"
+              }`}
+            >
               <CharReveal text={c.word} />
             </h2>
 
             {c.sentence && (
               <motion.p
-                className="mt-8 max-w-xl text-base leading-relaxed text-slate-300 md:text-lg"
+                className="mx-auto mt-8 max-w-xl text-base leading-relaxed text-slate-300 md:text-lg"
                 initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ duration: 0.6, delay: 0.35 }}
@@ -87,12 +119,14 @@ export function Journey() {
             )}
 
             {c.hint && (
-              <motion.p
-                className="mt-10 text-sm tracking-[0.2em] text-muted"
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 2.4, repeat: Infinity }}
-              >
-                {c.hint}
+              <motion.p className="mt-10 text-sm tracking-[0.2em] text-muted" style={{ opacity: hintOpacity }}>
+                <motion.span
+                  className="inline-block"
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2.4, repeat: Infinity }}
+                >
+                  {c.hint}
+                </motion.span>
               </motion.p>
             )}
 
@@ -103,11 +137,9 @@ export function Journey() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
               >
-                <Link to="/demo">
-                  <Button size="lg">
-                    Launch demo <ArrowUpRight className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <Button size="lg" onClick={() => navigate("chat")}>
+                  Open chat <ArrowUpRight className="h-4 w-4" />
+                </Button>
                 <a href="#how">
                   <Button variant="outline" size="lg">
                     How it works
@@ -115,7 +147,7 @@ export function Journey() {
                 </a>
               </motion.div>
             )}
-            </div>
+            </motion.div>
           </motion.div>
         </AnimatePresence>
 

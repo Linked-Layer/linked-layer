@@ -1,4 +1,5 @@
 import { GatingError, config } from "@recall/core";
+import { SolanaTokenGate } from "./solana";
 
 /**
  * Hold-to-use gating. Real implementation will read an SPL token balance for the
@@ -43,6 +44,11 @@ export class StubTokenGate implements TokenGate {
 
 let instance: TokenGate | null = null;
 export function getTokenGate(): TokenGate {
-  instance ??= new StubTokenGate();
+  if (instance) return instance;
+  if (config.gating.provider === "solana") {
+    instance = new SolanaTokenGate(config.gating.rpcUrl, config.gating.tokenMint);
+  } else {
+    instance = new StubTokenGate();
+  }
   return instance;
 }
