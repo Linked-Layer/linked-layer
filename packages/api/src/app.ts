@@ -1,5 +1,8 @@
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { BRAND, config, isRecallError } from "@recall/core";
 import rateLimit from "@fastify/rate-limit";
+import fastifyStatic from "@fastify/static";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyInstance } from "fastify";
@@ -15,6 +18,10 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   app.decorateRequest("auth", undefined);
   app.decorateRequest("walletHolder", undefined);
+
+  // Single-container deploy: serve the built frontend (same origin as the API).
+  const webDir = config.api.webDir ? resolve(process.cwd(), config.api.webDir) : "";
+  const serveWeb = !!webDir && existsSync(resolve(webDir, "index.html"));
 
   // CORS — the frontend calls this API cross-origin. No cookies are used (auth is via
   // headers), so credentials aren't needed and a wildcard / allow-list is safe.
@@ -50,6 +57,11 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   app.setNotFoundHandler((req, reply) => {
+    // SPA fallback: serve index.html for browser GETs that aren't API/static routes.
+    const isApi = /^\/(v1|healthz|readyz|docs|documentation)\b/.test(req.url);
+    if (serveWeb && req.method === "GET" && !isApi) {
+      return reply.sendFile("index.html");
+    }
     reply.status(404).send({ error: { code: "not_found", message: `Route ${req.method} ${req.url} not found` } });
   });
 
@@ -91,5 +103,13 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(fastifySwaggerUi, { routePrefix: "/docs" });
 
   await registerRoutes(app);
+
+  // Static frontend last, so API routes take precedence. wildcard:false → unknown
+  // paths fall through to the SPA fallback in the not-found handler.
+  if (serveWeb) {
+    await app.register(fastifyStatic, { root: webDir, wildcard: false });
+    app.log.info(`serving frontend from ${webDir}`);
+  }
+
   return app;
 }

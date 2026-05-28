@@ -1,9 +1,14 @@
 /** Frontend runtime config from Vite env (build-time inlined). */
 const env = import.meta.env;
 
+// In a production build with no explicit VITE_API_URL, the app is served by the
+// backend itself (single container) → talk to the API on the same origin.
+const rawApiUrl = (env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "";
+const sameOrigin = env.PROD && typeof window !== "undefined" ? window.location.origin : "";
+
 export const config = {
-  /** Backend Context API base URL for the live demo. Empty → scripted fallback. */
-  apiUrl: (env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "",
+  /** Backend Context API base URL. Empty (dev, no backend) → scripted fallback. */
+  apiUrl: rawApiUrl || sameOrigin,
   /** Public, read-only demo API key (rate-limited) for the "ask the company" widget. */
   demoKey: (env.VITE_DEMO_KEY as string | undefined) ?? "",
   /** Demo workspace slug. */

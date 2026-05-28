@@ -44,6 +44,8 @@ export const config = {
     rateLimitWindowMs: int("RATE_LIMIT_WINDOW_MS", 60_000),
     /** Allowed CORS origins: "*" or a comma-separated allow-list of exact origins. */
     corsOrigins: str("CORS_ORIGINS", "*"),
+    /** Built frontend dir to serve (single-container deploy). Empty → API only. */
+    webDir: str("WEB_DIST_DIR", ""),
   },
 
   /** Background connector sync interval (ms). 0 disables the scheduler. */
