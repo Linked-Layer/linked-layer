@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
-import { CornerDownLeft, FileText, Loader2, Send, ShieldCheck } from "lucide-react";
+import { CornerDownLeft, FileText, Loader2, Send, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 import { useState } from "react";
 import { Section } from "@/components/Section";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAsk } from "@/hooks/useAsk";
 import { BRAND } from "@/lib/brand";
@@ -15,13 +14,30 @@ const SUGGESTIONS = [
   "What is the architecture?",
 ];
 
+const HOW_IT_WORKS = [
+  {
+    icon: Wallet,
+    title: `Hold ${BRAND.symbol}`,
+    desc: `Connect a Solana wallet holding ${BRAND.symbol} to unlock the chat.`,
+  },
+  {
+    icon: Sparkles,
+    title: "Ask in plain English",
+    desc: "Question your team's entire memory — decisions, the “why”, owners and status.",
+  },
+  {
+    icon: FileText,
+    title: "Cited, permission-aware",
+    desc: "Every answer is grounded in real sources you're allowed to see — same recall() agents use.",
+  },
+];
+
 export function AskCompanyDemo() {
   const { verified, connected, verify, verifying, verifyError } = useWalletCtx();
   const { state, ask } = useAsk();
   const [q, setQ] = useState("");
 
-  // When the backend is live (and NOT in pre-token soft launch), the chat is gated
-  // STRICTLY by a verified $LINKED wallet. In soft launch the chat is an open demo.
+  // Live → gated STRICTLY by a verified $LINKED wallet (off during pre-token soft launch).
   const gated = !config.softLaunch && isLive.api() && !verified;
 
   const submit = (question: string) => {
@@ -36,9 +52,29 @@ export function AskCompanyDemo() {
       id="chat"
       eyebrow="Chat"
       title={<>Ask the company</>}
-      subtitle="Chat over a team's entire memory with cited sources — the same recall() the agents use."
+      subtitle="Chat over your team's entire memory with cited sources — the same recall() the agents use."
     >
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-3xl space-y-6">
+        {/* How it works */}
+        <div className="grid gap-3 sm:grid-cols-3">
+          {HOW_IT_WORKS.map((s, i) => (
+            <motion.div
+              key={s.title}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              className="panel flex flex-col gap-2 p-4"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet/15">
+                <s.icon className="h-5 w-5 text-violet" />
+              </div>
+              <div className="text-sm font-semibold text-white">{s.title}</div>
+              <p className="text-xs leading-relaxed text-muted">{s.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+
         {gated ? (
           <div className="panel flex flex-col items-center gap-4 px-6 py-14 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet/15">
@@ -65,13 +101,6 @@ export function AskCompanyDemo() {
           </div>
         ) : (
           <div className="panel overflow-hidden">
-            <div className="flex items-center justify-between border-b border-border px-5 py-3">
-              <span className="text-sm font-medium text-slate-200">workspace: acme</span>
-              <Badge className={state.live ? "border-cyan/40 text-cyan" : "border-violet/40 text-violet"}>
-                {state.live ? "connected to API" : "demo mode"}
-              </Badge>
-            </div>
-
             <div className="space-y-4 px-5 py-6">
               <div className="flex flex-wrap gap-2">
                 {SUGGESTIONS.map((s) => (
@@ -141,7 +170,7 @@ export function AskCompanyDemo() {
           </div>
         )}
 
-        <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-muted">
+        <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted">
           <CornerDownLeft className="h-3 w-3" /> Powered by the same MCP / Context API agents use.
         </p>
       </div>

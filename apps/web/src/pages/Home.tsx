@@ -9,9 +9,7 @@ import { CTA } from "@/sections/CTA";
 import { HowItWorks } from "@/sections/HowItWorks";
 import { Integrations } from "@/sections/Integrations";
 import { Journey } from "@/sections/Journey";
-import { LiveStats } from "@/sections/LiveStats";
 import { Roadmap } from "@/sections/Roadmap";
-import { Tokenomics } from "@/sections/Tokenomics";
 
 /**
  * Single-document app: each nav item is a SEPARATE view, swapped in place via
@@ -45,12 +43,6 @@ export function Home() {
             >
               {view === "home" && <HomeView />}
               {view === "chat" && <Padded><AskCompanyDemo /></Padded>}
-              {view === "tokenomics" && (
-                <Padded>
-                  <LiveStats />
-                  <Tokenomics />
-                </Padded>
-              )}
               {view === "roadmap" && <Padded><Roadmap /></Padded>}
               {view === "whitepaper" && <Padded><WhitepaperSection /></Padded>}
             </motion.div>

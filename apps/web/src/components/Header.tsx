@@ -10,7 +10,6 @@ import { type View, useNav } from "@/providers/Nav";
 const NAV: { label: string; view: View }[] = [
   { label: "Home", view: "home" },
   { label: "Chat", view: "chat" },
-  { label: "Tokenomics", view: "tokenomics" },
   { label: "Roadmap", view: "roadmap" },
   { label: "Whitepaper", view: "whitepaper" },
 ];
