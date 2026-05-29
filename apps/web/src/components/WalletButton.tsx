@@ -48,7 +48,7 @@ export function WalletButton() {
 
                 {!config.softLaunch &&
                   isLive.api() &&
-                  isLive.token() &&
+                  (isLive.token() || config.demoUnlock) &&
                   (verified ? (
                     <div className="flex items-center gap-2 rounded-lg bg-panel-2 px-3 py-2 text-sm text-emerald-400">
                       <BadgeCheck className="h-4 w-4 shrink-0" />

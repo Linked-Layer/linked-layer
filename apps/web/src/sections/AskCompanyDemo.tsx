@@ -41,8 +41,9 @@ export function AskCompanyDemo() {
   const gated = !config.softLaunch && isLive.api() && !verified;
   // The token must be live (a mint configured) before the wallet gate can verify
   // an on-chain balance. Pre-token: show a "launches soon" gate instead of a verify
-  // button that would fail (no mint to read a balance from yet).
-  const tokenLive = isLive.token();
+  // button that would fail (no mint to read a balance from yet). The DEMO/QA unlock
+  // forces the live verify gate on pre-token (paired with the stub backend gate).
+  const tokenLive = isLive.token() || config.demoUnlock;
 
   const submit = (question: string) => {
     const text = question.trim();
