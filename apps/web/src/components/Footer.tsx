@@ -27,7 +27,6 @@ export function Footer() {
           <ul className="mt-3 space-y-2 text-sm text-muted">
             <li><button onClick={() => navigate("home")} className="hover:text-white">Home</button></li>
             <li><button onClick={() => navigate("chat")} className="hover:text-white">Chat</button></li>
-            <li><button onClick={() => navigate("roadmap")} className="hover:text-white">Roadmap</button></li>
             <li><button onClick={() => navigate("whitepaper")} className="hover:text-white">Whitepaper</button></li>
           </ul>
         </div>
