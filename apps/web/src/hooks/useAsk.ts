@@ -16,13 +16,13 @@ export interface AskState {
 }
 
 const FALLBACK_SOURCES: RecallSource[] = [
-  { nodeId: "1", title: "Decision: use Solana for the x402 pay-per-call rail", url: null, snippet: "We chose Solana for sub-cent per-call fees and first-class x402 support.", score: 0.92 },
+  { nodeId: "1", title: "Decision: settle agent pay-per-call on Solana", url: null, snippet: "We chose Solana for sub-cent per-call fees and first-class x402 support.", score: 0.92 },
   { nodeId: "2", title: "Thread: how should we price agent context calls?", url: null, snippet: "Flat $0.01 USDC per recall() call; fees route to buyback & burn.", score: 0.71 },
   { nodeId: "3", title: "Doc: Linked Layer architecture overview", url: null, snippet: "Connectors → permission-aware context graph → distillation → recall via MCP/API.", score: 0.64 },
 ];
 
 const FALLBACK_ANSWER =
-  "Based on team memory: the team chose Solana for the agent pay-per-call rail because x402 has first-class Solana support and fees are sub-cent, which matters for per-call micropayments. Pricing was set to a flat $0.01 USDC per recall() call, with fees routed to buyback & burn of $LINKED. [Decision: use Solana for the x402 pay-per-call rail] [Thread: how should we price agent context calls?]";
+  "Based on team memory: the team chose Solana for the agent pay-per-call rail because x402 has first-class Solana support and fees are sub-cent, which matters for per-call micropayments. Pricing was set to a flat $0.01 USDC per recall() call, with fees routed to buyback & burn of $LINKED. [Decision: settle agent pay-per-call on Solana] [Thread: how should we price agent context calls?]";
 
 export function useAsk() {
   const [state, setState] = useState<AskState>({

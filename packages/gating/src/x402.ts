@@ -19,7 +19,7 @@ export interface X402Verification {
 
 /**
  * x402 pay-per-call gateway for agents. Real implementation will verify an
- * on-chain USDC (or $RECALL) settlement on Solana from the `X-PAYMENT` header.
+ * on-chain USDC (or $LINKED) settlement on Solana from the `X-PAYMENT` header.
  * This stub accepts any header of the form `mock <ref>`.
  */
 export interface PaymentGate {

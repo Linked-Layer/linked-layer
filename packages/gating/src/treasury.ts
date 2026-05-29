@@ -9,7 +9,7 @@ export interface UsageRecord {
 
 /**
  * Treasury / fee sink. Real implementation routes collected fees to buyback &
- * burn of `$RECALL`. This stub just accumulates and logs.
+ * burn of `$LINKED`. This stub just accumulates and logs.
  */
 export interface Treasury {
   recordUsage(record: UsageRecord): Promise<void>;

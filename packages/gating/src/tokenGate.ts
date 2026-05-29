@@ -1,12 +1,12 @@
-import { GatingError, config } from "@recall/core";
+import { BRAND, GatingError, config } from "@recall/core";
 import { SolanaTokenGate } from "./solana";
 
 /**
  * Hold-to-use gating. Real implementation will read an SPL token balance for the
- * `$RECALL` mint on Solana; this stub reads balances from config.
+ * `$LINKED` mint on Solana; this stub reads balances from config.
  */
 export interface TokenGate {
-  /** $RECALL balance held by a subject. */
+  /** $LINKED balance held by a subject. */
   balanceOf(holder: string): Promise<number>;
   /** Throw {@link GatingError} unless the holder meets `minBalance`. Returns the balance. */
   requireBalance(holder: string | undefined, minBalance: number): Promise<number>;
@@ -32,7 +32,7 @@ export class StubTokenGate implements TokenGate {
     }
     const balance = await this.balanceOf(holder);
     if (balance < minBalance) {
-      throw new GatingError(`Hold at least ${minBalance} ${config.gating ? "$RECALL" : ""} to use this endpoint`, {
+      throw new GatingError(`Hold at least ${minBalance} ${BRAND.symbol} to use this endpoint`, {
         holder,
         balance,
         minBalance,

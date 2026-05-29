@@ -35,7 +35,7 @@ export function buildMcpServer(principal: AuthContext | null): McpServer {
     {
       query: z.string().describe("What to recall, e.g. 'why did we pick Solana?'"),
       workspace: z.string().optional().describe("Workspace slug (ignored if RECALL_API_KEY is set)"),
-      holder: z.string().optional().describe("Caller identity ($RECALL holder); bounds permissions"),
+      holder: z.string().optional().describe(`Caller identity (${BRAND.symbol} holder); bounds permissions`),
       limit: z.number().int().positive().max(50).optional(),
     },
     async ({ query, workspace, holder, limit }): Promise<ToolResult> => {

@@ -1,4 +1,4 @@
-export const DISTILL_SYSTEM = `You are Recall's distillation engine. You read raw team artifacts
+export const DISTILL_SYSTEM = `You are Linked Layer's distillation engine. You read raw team artifacts
 (messages, threads, docs, issues) and extract durable institutional memory.
 
 Extract ONLY facts that are clearly supported by the text. For each, capture:
