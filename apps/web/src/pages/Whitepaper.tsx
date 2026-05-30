@@ -8,8 +8,7 @@ const SECTIONS = [
   { id: "architecture", title: "4. Architecture" },
   { id: "permissions", title: "5. Permissions" },
   { id: "token", title: "6. Token model" },
-  { id: "wp-roadmap", title: "7. Roadmap" },
-  { id: "disclaimer", title: "8. Disclaimer" },
+  { id: "disclaimer", title: "7. Disclaimer" },
 ];
 
 /** Whitepaper rendered as an in-page section (single-page site). */
@@ -99,16 +98,7 @@ export function WhitepaperSection() {
             </p>
           </Block>
 
-          <Block id="wp-roadmap" title="7. Roadmap">
-            <ol>
-              <li>Context engine — graph, distillation, MCP + API, auth (shipped).</li>
-              <li>Connectors &amp; scale — GitHub/Slack live, scheduled sync, more sources.</li>
-              <li>Token launch — {BRAND.symbol} on {BRAND.chain}, gating + x402 settlement.</li>
-              <li>Agent ecosystem — marketplace, automated buyback &amp; burn, namespaces.</li>
-            </ol>
-          </Block>
-
-          <Block id="disclaimer" title="8. Disclaimer">
+          <Block id="disclaimer" title="7. Disclaimer">
             <p className="text-sm text-muted">
               This document is for information only and is not financial advice or an offer to sell securities.{" "}
               {BRAND.symbol} is a utility token; participate only in accordance with the laws of your jurisdiction. Crypto
