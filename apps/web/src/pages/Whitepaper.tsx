@@ -8,7 +8,6 @@ const SECTIONS = [
   { id: "architecture", title: "4. Architecture" },
   { id: "permissions", title: "5. Permissions" },
   { id: "token", title: "6. Token model" },
-  { id: "disclaimer", title: "7. Disclaimer" },
 ];
 
 /** Whitepaper rendered as an in-page section (single-page site). */
@@ -95,14 +94,6 @@ export function WhitepaperSection() {
               Built on {BRAND.chain}: sub-cent fees make per-call micropayments viable, and x402 settlement is
               first-class. Allocation: 50% liquidity, 20% community &amp; airdrops, 15% treasury (buyback &amp; burn), 10%
               team (vested), 5% ecosystem.
-            </p>
-          </Block>
-
-          <Block id="disclaimer" title="7. Disclaimer">
-            <p className="text-sm text-muted">
-              This document is for information only and is not financial advice or an offer to sell securities.{" "}
-              {BRAND.symbol} is a utility token; participate only in accordance with the laws of your jurisdiction. Crypto
-              assets are volatile and may lose value.
             </p>
           </Block>
         </article>
