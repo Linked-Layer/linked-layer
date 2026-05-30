@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { BRAND } from "@/lib/brand";
 
 const SECTIONS = [
@@ -15,8 +14,7 @@ export function WhitepaperSection() {
   return (
     <section id="whitepaper" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-24 sm:px-6">
       <div className="mb-10">
-        <Badge>{BRAND.symbol} · Whitepaper v1.0</Badge>
-        <h1 className="mt-4 font-serif text-5xl font-light text-white">{BRAND.name}</h1>
+        <h1 className="font-serif text-5xl font-light text-white">{BRAND.name}</h1>
         <p className="mt-3 max-w-2xl text-muted">
           {BRAND.tagline}. {BRAND.oneLiner}
         </p>
