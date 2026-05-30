@@ -32,18 +32,18 @@ const HOW_IT_WORKS = [
   },
 ];
 
+/** Free questions a verified wallet gets before hold-to-use (keep in sync with FREE_TRIAL_CALLS). */
+const FREE_QUESTIONS = 2;
+
 export function AskCompanyDemo() {
   const { verified, connected, verify, verifying, verifyError } = useWalletCtx();
   const { state, ask } = useAsk();
   const [q, setQ] = useState("");
 
-  // Live → gated STRICTLY by a verified $LINKED wallet (off during pre-token soft launch).
+  // Chat requires a verified wallet (Sign-In-with-Solana). A verified wallet gets
+  // FREE_QUESTIONS free answers (no token needed); holders of $LINKED are unlimited.
+  // The backend enforces the limit and returns the upsell message.
   const gated = !config.softLaunch && isLive.api() && !verified;
-  // The token must be live (a mint configured) before the wallet gate can verify
-  // an on-chain balance. Pre-token: show a "launches soon" gate instead of a verify
-  // button that would fail (no mint to read a balance from yet). The DEMO/QA unlock
-  // forces the live verify gate on pre-token (paired with the stub backend gate).
-  const tokenLive = isLive.token() || config.demoUnlock;
 
   const submit = (question: string) => {
     const text = question.trim();
@@ -85,36 +85,24 @@ export function AskCompanyDemo() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet/15">
               <ShieldCheck className="h-6 w-6 text-violet" />
             </div>
-            {tokenLive ? (
-              <>
-                <div>
-                  <h3 className="text-lg font-semibold text-white">Hold {BRAND.symbol} to chat</h3>
-                  <p className="mx-auto mt-2 max-w-md text-sm text-muted">
-                    This chat is gated by your wallet. Connect a Solana wallet holding {BRAND.symbol} and verify
-                    ownership to unlock it.
-                  </p>
-                </div>
-                {connected ? (
-                  <Button onClick={verify} disabled={verifying}>
-                    {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                    {verifying ? "Check your wallet…" : `Verify ${BRAND.symbol} ownership`}
-                  </Button>
-                ) : (
-                  <p className="text-sm text-muted">
-                    Use <span className="text-violet">Connect Wallet</span> in the top-right, then verify.
-                  </p>
-                )}
-                {verifyError && <p className="max-w-md text-sm leading-snug text-rose-400">{verifyError}</p>}
-              </>
+            <div>
+              <h3 className="text-lg font-semibold text-white">Try it free — {FREE_QUESTIONS} questions</h3>
+              <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+                Connect a Solana wallet and verify to ask {FREE_QUESTIONS} questions over the team's memory — free.
+                Hold {BRAND.symbol} for unlimited access.
+              </p>
+            </div>
+            {connected ? (
+              <Button onClick={verify} disabled={verifying}>
+                {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                {verifying ? "Check your wallet…" : "Verify wallet"}
+              </Button>
             ) : (
-              <div>
-                <h3 className="text-lg font-semibold text-white">{BRAND.symbol} launches soon</h3>
-                <p className="mx-auto mt-2 max-w-md text-sm text-muted">
-                  This chat is gated by holding {BRAND.symbol}. The gate goes live the moment the token lists — then
-                  connect a Solana wallet holding {BRAND.symbol} and verify ownership to unlock it.
-                </p>
-              </div>
+              <p className="text-sm text-muted">
+                Use <span className="text-violet">Connect Wallet</span> in the top-right, then verify.
+              </p>
             )}
+            {verifyError && <p className="max-w-md text-sm leading-snug text-rose-400">{verifyError}</p>}
           </div>
         ) : (
           <div className="panel overflow-hidden">

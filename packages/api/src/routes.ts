@@ -33,7 +33,7 @@ import {
 import { enqueueIngest } from "@recall/worker";
 import type { FastifyInstance } from "fastify";
 import { authenticate, requireAdmin, requireScope, resolveWorkspace } from "./middleware/auth";
-import { getHolder, requireToken } from "./middleware/gating";
+import { gateAskFreeTrial, getHolder, requireToken } from "./middleware/gating";
 import { resolveSession } from "./middleware/session";
 import { requirePayment } from "./middleware/x402";
 
@@ -106,7 +106,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // ---- "ask the company" (SSE stream) ----
-  app.post("/v1/ask", { preHandler: [authenticate, resolveSession, requireScope("ask"), requireToken] }, async (req, reply) => {
+  app.post("/v1/ask", { preHandler: [authenticate, resolveSession, requireScope("ask"), gateAskFreeTrial] }, async (req, reply) => {
     const body = askRequestSchema.parse(req.body);
     const handle = await ask({
       question: body.question,

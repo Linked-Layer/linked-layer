@@ -34,7 +34,15 @@ export async function streamAsk(question: string, cb: AskCallbacks, signal?: Abo
   });
 
   if (!res.ok || !res.body) {
-    cb.onError?.(`Request failed (${res.status})`);
+    // Surface the backend's message (e.g. "Free preview used … hold $LINKED") instead of a bare status.
+    let message = `Request failed (${res.status})`;
+    try {
+      const err = (await res.json()) as { error?: { message?: string } };
+      if (err?.error?.message) message = err.error.message;
+    } catch {
+      /* non-JSON body */
+    }
+    cb.onError?.(message);
     return;
   }
 

@@ -48,11 +48,10 @@ export function WalletButton() {
 
                 {!config.softLaunch &&
                   isLive.api() &&
-                  (isLive.token() || config.demoUnlock) &&
                   (verified ? (
                     <div className="flex items-center gap-2 rounded-lg bg-panel-2 px-3 py-2 text-sm text-emerald-400">
                       <BadgeCheck className="h-4 w-4 shrink-0" />
-                      Verified · {session!.balance.toLocaleString()} {BRAND.symbol}
+                      {session!.balance > 0 ? `Verified · ${session!.balance.toLocaleString()} ${BRAND.symbol}` : "Verified"}
                     </div>
                   ) : (
                     <button
@@ -65,7 +64,7 @@ export function WalletButton() {
                       ) : (
                         <ShieldCheck className="h-4 w-4 text-violet" />
                       )}
-                      {verifying ? "Check your wallet…" : `Verify ${BRAND.symbol} ownership`}
+                      {verifying ? "Check your wallet…" : "Verify wallet"}
                     </button>
                   ))}
                 {verifyError && <div className="px-3 py-1 text-xs leading-snug text-rose-400">{verifyError}</div>}

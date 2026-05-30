@@ -105,6 +105,8 @@ export const config = {
     provider: str("GATING_PROVIDER", "stub"),
     /** Minimum whole-token balance required (compared against decimal-adjusted UI amount). */
     minBalance: int("GATING_MIN_BALANCE", 1000),
+    /** Free preview: calls allowed per verified wallet before hold-to-use kicks in (0 disables). */
+    freeTrialCalls: int("FREE_TRIAL_CALLS", 2),
     /** $LINKED SPL mint address — required for the "solana" provider. */
     tokenMint: process.env.MNEMO_TOKEN_MINT ?? process.env.RECALL_TOKEN_MINT ?? "",
     /** Solana JSON-RPC endpoint for on-chain balance reads. */

@@ -1,9 +1,6 @@
 import { randomBytes } from "node:crypto";
 import {
   AuthError,
-  BRAND,
-  GatingError,
-  RecallError,
   ValidationError,
   base58Decode,
   buildSiwsMessage,
@@ -112,24 +109,17 @@ export async function verifyWalletAndIssueSession(p: VerifyWalletParams): Promis
     throw new AuthError("Signature does not match wallet — ownership not proven");
   }
 
-  // Ownership proven → check the (real, on-chain when GATING_PROVIDER=solana) balance.
+  // Ownership proven → issue a session. The balance is informational here; access
+  // is decided per-call by the gate (free preview, then hold-to-use). Read it
+  // best-effort (only when a real mint is configured) so the UI can show a tier.
   const minBalance = config.gating.minBalance;
-  let balance: number;
-  try {
-    balance = await getTokenGate().balanceOf(p.address);
-  } catch (err) {
-    throw new RecallError(`Could not verify ${BRAND.symbol} balance on-chain`, {
-      status: 502,
-      code: "gating_verification_failed",
-      details: { holder: p.address, reason: (err as Error).message },
-    });
-  }
-  if (balance < minBalance) {
-    throw new GatingError(`Hold at least ${minBalance} ${BRAND.symbol} to unlock`, {
-      holder: p.address,
-      balance,
-      minBalance,
-    });
+  let balance = 0;
+  if (config.gating.tokenMint && config.gating.tokenMint !== "stub-mint-address") {
+    try {
+      balance = await getTokenGate().balanceOf(p.address);
+    } catch {
+      balance = 0; // chain unreadable → treat as free-tier; per-call gate re-checks
+    }
   }
 
   const expiresAt = Date.now() + config.wallet.sessionTtlMs;
