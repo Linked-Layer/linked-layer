@@ -1,6 +1,6 @@
 import { newId } from "@recall/core";
 import type { DistillStatus, RawItem, SourceType } from "@recall/core";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql as dsql } from "drizzle-orm";
 import { db } from "./client";
 import { sql } from "./client";
 import { acl, apiKeys, chunks, connectors, distillations, edges, nodes, rawIngest, workspaces } from "./schema";
@@ -148,12 +148,12 @@ export async function insertRawItems(workspaceId: string, items: RawItem[]): Pro
       // ORIGINAL raw row and silently ignore updated content or ACL audience.
       target: [rawIngest.workspaceId, rawIngest.sourceType, rawIngest.externalId],
       set: {
-        kind: sql`excluded.kind`,
-        title: sql`excluded.title`,
-        body: sql`excluded.body`,
-        metadata: sql`excluded.metadata`,
-        audience: sql`excluded.audience`,
-        links: sql`excluded.links`,
+        kind: dsql`excluded.kind`,
+        title: dsql`excluded.title`,
+        body: dsql`excluded.body`,
+        metadata: dsql`excluded.metadata`,
+        audience: dsql`excluded.audience`,
+        links: dsql`excluded.links`,
         processed: false,
       },
     });
