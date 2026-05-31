@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { CornerDownLeft, FileText, Loader2, Send, ShieldCheck, Sparkles, Wallet } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Section } from "@/components/Section";
 import { Button } from "@/components/ui/button";
-import { useAsk } from "@/hooks/useAsk";
+import { type ChatMessage, useAsk } from "@/hooks/useAsk";
 import { BRAND } from "@/lib/brand";
 import { config, isLive } from "@/lib/config";
 import { useWalletCtx } from "@/providers/Wallet";
@@ -36,21 +36,31 @@ const HOW_IT_WORKS = [
 const FREE_QUESTIONS = 2;
 
 export function AskCompanyDemo() {
-  const { verified, connected, verify, verifying, verifyError } = useWalletCtx();
-  const { state, ask } = useAsk();
+  const { verified, connected, verify, verifying, verifyError, session } = useWalletCtx();
+  const { messages, streaming, ask } = useAsk();
   const [q, setQ] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Chat requires a verified wallet (Sign-In-with-Solana). A verified wallet gets
   // FREE_QUESTIONS free answers (no token needed); holders of $LINKED are unlimited.
-  // The backend enforces the limit and returns the upsell message.
   const gated = !config.softLaunch && isLive.api() && !verified;
+
+  // Auto-scroll the message list to the newest content.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages]);
 
   const submit = (question: string) => {
     const text = question.trim();
-    if (!text || state.status === "streaming") return;
-    setQ(text);
+    if (!text || streaming) return;
+    setQ("");
     void ask(text);
   };
+
+  const asked = messages.filter((m) => m.role === "user").length;
+  const isHolder = !!session && session.balance > 0;
+  const freeLeft = Math.max(0, FREE_QUESTIONS - asked);
 
   return (
     <Section
@@ -105,72 +115,54 @@ export function AskCompanyDemo() {
             {verifyError && <p className="max-w-md text-sm leading-snug text-rose-400">{verifyError}</p>}
           </div>
         ) : (
-          <div className="panel overflow-hidden">
-            <div className="space-y-4 px-5 py-6">
-              <div className="flex flex-wrap gap-2">
-                {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => submit(s)}
-                    className="rounded-full border border-border bg-panel-2 px-3 py-1.5 text-xs text-slate-300 transition-colors hover:border-violet/60 hover:text-white"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-
-              {(state.answer || state.status === "streaming") && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl bg-panel-2/60 p-4">
-                  <p className="text-sm leading-relaxed text-slate-100">
-                    {state.answer}
-                    {state.status === "streaming" && <span className="ml-0.5 animate-pulse text-violet">▍</span>}
-                  </p>
-                </motion.div>
-              )}
-
-              {state.error && <p className="text-sm text-rose-400">Error: {state.error}</p>}
-
-              {state.sources.length > 0 && (
-                <div>
-                  <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">Sources</div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {state.sources.map((src) => (
-                      <div key={src.nodeId} className="rounded-lg border border-border bg-panel/60 p-3">
-                        <div className="flex items-start gap-2">
-                          <FileText className="mt-0.5 h-4 w-4 shrink-0 text-violet" />
-                          <div>
-                            <div className="text-sm font-medium text-slate-100">{src.title}</div>
-                            <div className="mt-1 line-clamp-2 text-xs text-muted">{src.snippet}</div>
-                          </div>
-                        </div>
-                      </div>
+          <div className="panel flex flex-col overflow-hidden">
+            {/* Message list */}
+            <div ref={scrollRef} className="min-h-[200px] max-h-[480px] space-y-4 overflow-y-auto px-5 py-6">
+              {messages.length === 0 ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted">Ask anything about the team — or start with one of these:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {SUGGESTIONS.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => submit(s)}
+                        className="rounded-full border border-border bg-panel-2 px-3 py-1.5 text-xs text-slate-300 transition-colors hover:border-violet/60 hover:text-white"
+                      >
+                        {s}
+                      </button>
                     ))}
                   </div>
                 </div>
+              ) : (
+                messages.map((m) => <Bubble key={m.id} m={m} />)
               )}
             </div>
 
+            {/* Composer */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 submit(q);
               }}
-              className="flex items-center gap-2 border-t border-border px-4 py-3"
+              className="border-t border-border px-4 py-3"
             >
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Ask anything about the team…"
-                className="h-11 flex-1 rounded-xl border border-border bg-panel-2 px-4 text-sm text-white outline-none placeholder:text-muted focus:border-violet/60"
-              />
-              <Button type="submit" size="md" disabled={state.status === "streaming"}>
-                {state.status === "streaming" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-                <span className="hidden sm:inline">Ask</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Ask anything about the team…"
+                  className="h-11 flex-1 rounded-xl border border-border bg-panel-2 px-4 text-sm text-white outline-none placeholder:text-muted focus:border-violet/60"
+                />
+                <Button type="submit" size="md" disabled={streaming || !q.trim()}>
+                  {streaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  <span className="hidden sm:inline">Ask</span>
+                </Button>
+              </div>
+              {!isHolder && (
+                <p className="mt-2 px-1 text-xs text-muted">
+                  Free preview · {freeLeft} of {FREE_QUESTIONS} questions left · hold {BRAND.symbol} for unlimited
+                </p>
+              )}
             </form>
           </div>
         )}
@@ -181,4 +173,68 @@ export function AskCompanyDemo() {
       </div>
     </Section>
   );
+}
+
+/** A single chat message — user (right) or assistant (left, with cited sources). */
+function Bubble({ m }: { m: ChatMessage }) {
+  if (m.role === "user") {
+    return (
+      <div className="flex justify-end">
+        <div className="max-w-[85%] rounded-2xl rounded-br-md bg-violet/20 px-4 py-2.5 text-sm leading-relaxed text-white">
+          {m.content}
+        </div>
+      </div>
+    );
+  }
+
+  const isError = m.status === "error";
+  const empty = !m.content && m.status === "streaming";
+  return (
+    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-start gap-2">
+      <div className="flex max-w-[90%] items-start gap-2.5">
+        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-violet/15">
+          <Sparkles className="h-4 w-4 text-violet" />
+        </div>
+        <div
+          className={`rounded-2xl rounded-bl-md px-4 py-2.5 text-sm leading-relaxed ${
+            isError ? "bg-rose-500/10 text-rose-300" : "bg-panel-2/70 text-slate-100"
+          }`}
+        >
+          {empty ? (
+            <span className="inline-flex gap-1">
+              <Dot /> <Dot /> <Dot />
+            </span>
+          ) : (
+            <>
+              {m.content}
+              {m.status === "streaming" && <span className="ml-0.5 animate-pulse text-violet">▍</span>}
+            </>
+          )}
+        </div>
+      </div>
+
+      {m.sources && m.sources.length > 0 && (
+        <div className="ml-9 w-full">
+          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">Sources</div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {m.sources.map((src) => (
+              <div key={src.nodeId} className="rounded-lg border border-border bg-panel/60 p-3">
+                <div className="flex items-start gap-2">
+                  <FileText className="mt-0.5 h-4 w-4 shrink-0 text-violet" />
+                  <div>
+                    <div className="text-sm font-medium text-slate-100">{src.title}</div>
+                    <div className="mt-1 line-clamp-2 text-xs text-muted">{src.snippet}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+function Dot() {
+  return <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-violet" />;
 }
