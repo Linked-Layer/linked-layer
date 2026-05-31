@@ -143,8 +143,19 @@ export async function insertRawItems(workspaceId: string, items: RawItem[]): Pro
     .insert(rawIngest)
     .values(values)
     .onConflictDoUpdate({
+      // Refresh the stored content on re-sync (title/body/metadata/audience/links/kind)
+      // and re-queue it for the pipeline. Without this, re-seeding would re-process the
+      // ORIGINAL raw row and silently ignore updated content or ACL audience.
       target: [rawIngest.workspaceId, rawIngest.sourceType, rawIngest.externalId],
-      set: { processed: false },
+      set: {
+        kind: sql`excluded.kind`,
+        title: sql`excluded.title`,
+        body: sql`excluded.body`,
+        metadata: sql`excluded.metadata`,
+        audience: sql`excluded.audience`,
+        links: sql`excluded.links`,
+        processed: false,
+      },
     });
   return values.length;
 }
