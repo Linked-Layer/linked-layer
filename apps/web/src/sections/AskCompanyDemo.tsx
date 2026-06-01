@@ -193,9 +193,12 @@ function Bubble({ m }: { m: ChatMessage }) {
 
   const isError = m.status === "error";
   const empty = !m.content && m.status === "streaming";
-  // Show only the sources the answer actually cited (real provenance) — not every
-  // node the retriever touched. Greetings / unused context → no Sources block.
+  // Sources the answer actually cited (matched on the raw [Title] markers) — real
+  // provenance, not every node the retriever touched. Greetings → none.
   const cited = (m.sources ?? []).filter((s) => m.content.includes(s.title));
+  // Strip the inline [Title] citation markers from the displayed text — they're shown
+  // as Source cards below instead, so the answer itself reads cleanly.
+  const display = m.content.replace(/\s*\[[^\]]*\]/g, "");
   return (
     <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-start gap-2">
       <div className="flex max-w-[90%] items-start gap-2.5">
@@ -213,7 +216,7 @@ function Bubble({ m }: { m: ChatMessage }) {
             </span>
           ) : (
             <>
-              {m.content}
+              {display}
               {m.status === "streaming" && <span className="ml-0.5 animate-pulse text-violet">▍</span>}
             </>
           )}
