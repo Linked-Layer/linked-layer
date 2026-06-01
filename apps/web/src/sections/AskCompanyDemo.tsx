@@ -117,7 +117,11 @@ export function AskCompanyDemo() {
         ) : (
           <div className="panel flex flex-col overflow-hidden">
             {/* Message list */}
-            <div ref={scrollRef} className="min-h-[200px] max-h-[480px] space-y-4 overflow-y-auto px-5 py-6">
+            <div
+              ref={scrollRef}
+              data-lenis-prevent
+              className="min-h-[200px] max-h-[480px] space-y-4 overflow-y-auto overscroll-contain px-5 py-6"
+            >
               {messages.length === 0 ? (
                 <div className="space-y-3">
                   <p className="text-sm text-muted">Ask anything about the team — or start with one of these:</p>
