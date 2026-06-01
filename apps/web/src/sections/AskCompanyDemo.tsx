@@ -193,6 +193,9 @@ function Bubble({ m }: { m: ChatMessage }) {
 
   const isError = m.status === "error";
   const empty = !m.content && m.status === "streaming";
+  // Show only the sources the answer actually cited (real provenance) — not every
+  // node the retriever touched. Greetings / unused context → no Sources block.
+  const cited = (m.sources ?? []).filter((s) => m.content.includes(s.title));
   return (
     <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-start gap-2">
       <div className="flex max-w-[90%] items-start gap-2.5">
@@ -217,11 +220,11 @@ function Bubble({ m }: { m: ChatMessage }) {
         </div>
       </div>
 
-      {m.sources && m.sources.length > 0 && (
+      {cited.length > 0 && (
         <div className="ml-9 w-full">
           <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">Sources</div>
           <div className="grid gap-2 sm:grid-cols-2">
-            {m.sources.map((src) => (
+            {cited.map((src) => (
               <div key={src.nodeId} className="rounded-lg border border-border bg-panel/60 p-3">
                 <div className="flex items-start gap-2">
                   <FileText className="mt-0.5 h-4 w-4 shrink-0 text-violet" />
