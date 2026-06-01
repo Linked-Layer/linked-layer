@@ -1,5 +1,5 @@
 import { BRAND } from "@recall/core";
-import { getLlm } from "./llm";
+import { type ChatTurn, getLlm } from "./llm";
 
 export interface AnswerContext {
   question: string;
@@ -7,6 +7,8 @@ export interface AnswerContext {
   context: string;
   /** Source titles for citation. */
   sourceTitles: string[];
+  /** Prior conversation turns (oldest→newest) so follow-ups keep context. */
+  history?: ChatTurn[];
 }
 
 const ASK_SYSTEM = `You are a helpful, knowledgeable assistant for ${BRAND.name}. Answer the user's question directly, accurately and concisely.
@@ -30,7 +32,7 @@ export async function* answerQuestionStream(c: AnswerContext): AsyncGenerator<st
   }
   try {
     let emitted = false;
-    for await (const token of llm.stream({ system: ASK_SYSTEM, user: userPrompt(c), maxTokens: 1024 })) {
+    for await (const token of llm.stream({ system: ASK_SYSTEM, user: userPrompt(c), history: c.history, maxTokens: 1024 })) {
       emitted = true;
       yield token;
     }

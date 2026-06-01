@@ -31,10 +31,17 @@ export const writeRequestSchema = z.object({
   audience: z.array(z.string()).default([]),
 });
 
+export const chatTurnSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string(),
+});
+
 export const askRequestSchema = z.object({
   question: z.string().min(1),
   scope: recallScopeSchema,
   holder: z.string().optional(),
+  /** Prior conversation turns (oldest→newest) so follow-ups keep context. */
+  history: z.array(chatTurnSchema).max(20).optional(),
 });
 
 export const connectorConfigSchema = z.object({

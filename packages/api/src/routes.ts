@@ -112,6 +112,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       question: body.question,
       workspace: resolveWorkspace(req, body.scope.workspace),
       holder: getHolder(req),
+      history: body.history,
     });
 
     reply.hijack();

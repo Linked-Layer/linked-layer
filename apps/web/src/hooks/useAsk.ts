@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { type RecallSource, streamAsk } from "@/lib/api";
 import { config, isLive } from "@/lib/config";
 
@@ -29,10 +29,21 @@ export function useAsk() {
   const [streaming, setStreaming] = useState(false);
   const idRef = useRef(0);
   const nextId = () => `m${++idRef.current}`;
+  // Mirror messages in a ref so `ask` can read the prior turns synchronously.
+  const messagesRef = useRef<ChatMessage[]>([]);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   const ask = useCallback(async (question: string) => {
     const q = question.trim();
     if (!q) return;
+
+    // Prior conversation turns (oldest→newest) so the model keeps context on follow-ups.
+    const history = messagesRef.current
+      .filter((m) => m.content.trim() && m.status !== "error")
+      .map((m) => ({ role: m.role, content: m.content }))
+      .slice(-8);
 
     const userId = nextId();
     const assistantId = nextId();
@@ -60,7 +71,7 @@ export function useAsk() {
     }
 
     try {
-      await streamAsk(question, {
+      await streamAsk(question, history, {
         onSources: (sources) => patch((m) => ({ ...m, sources })),
         onToken: (t) => patch((m) => ({ ...m, content: m.content + t })),
         onDone: () => patch((m) => (m.status === "streaming" ? { ...m, status: "done" } : m)),

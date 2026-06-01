@@ -11,9 +11,16 @@ import { config } from "@recall/core";
  * the whole pipeline still runs offline.
  */
 
+export interface ChatTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export interface LlmRequest {
   system: string;
   user: string;
+  /** Prior conversation turns (oldest→newest), inserted before the current user message. */
+  history?: ChatTurn[];
   maxTokens?: number;
   /** Prefer the cheaper/faster model when the provider distinguishes one. */
   fast?: boolean;
@@ -46,7 +53,7 @@ class AnthropicClient implements LlmClient {
       model: modelFor(req),
       max_tokens: req.maxTokens ?? config.llm.maxTokens,
       system: req.system,
-      messages: [{ role: "user", content: req.user }],
+      messages: [...(req.history ?? []), { role: "user", content: req.user }],
     });
     return msg.content
       .filter((b): b is Anthropic.TextBlock => b.type === "text")
@@ -59,7 +66,7 @@ class AnthropicClient implements LlmClient {
       model: modelFor(req),
       max_tokens: req.maxTokens ?? config.llm.maxTokens,
       system: req.system,
-      messages: [{ role: "user", content: req.user }],
+      messages: [...(req.history ?? []), { role: "user", content: req.user }],
     });
     for await (const event of s) {
       if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
@@ -91,6 +98,7 @@ class PerplexityClient implements LlmClient {
       stream,
       messages: [
         { role: "system", content: req.system },
+        ...(req.history ?? []),
         { role: "user", content: req.user },
       ],
     });

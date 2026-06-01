@@ -9,6 +9,11 @@ export interface RecallSource {
   score: number;
 }
 
+export interface ChatTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export interface AskCallbacks {
   onSources?: (sources: RecallSource[]) => void;
   onToken?: (token: string) => void;
@@ -18,9 +23,15 @@ export interface AskCallbacks {
 
 /**
  * Stream an answer from the backend "ask the company" endpoint (SSE).
+ * `history` carries prior turns (oldest→newest) so follow-ups keep context.
  * Parses `event:`/`data:` frames from the response body.
  */
-export async function streamAsk(question: string, cb: AskCallbacks, signal?: AbortSignal): Promise<void> {
+export async function streamAsk(
+  question: string,
+  history: ChatTurn[],
+  cb: AskCallbacks,
+  signal?: AbortSignal,
+): Promise<void> {
   const session = getSessionToken();
   const res = await fetch(`${config.apiUrl}/v1/ask`, {
     method: "POST",
@@ -30,7 +41,7 @@ export async function streamAsk(question: string, cb: AskCallbacks, signal?: Abo
       ...(config.demoKey ? { authorization: `Bearer ${config.demoKey}` } : {}),
       ...(session ? { "x-linked-session": session } : {}),
     },
-    body: JSON.stringify({ question, scope: { workspace: config.demoWorkspace } }),
+    body: JSON.stringify({ question, scope: { workspace: config.demoWorkspace }, history }),
   });
 
   if (!res.ok || !res.body) {
