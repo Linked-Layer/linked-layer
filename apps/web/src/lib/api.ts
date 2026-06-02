@@ -14,6 +14,11 @@ export interface ChatTurn {
   content: string;
 }
 
+export interface Attachment {
+  name: string;
+  content: string;
+}
+
 export interface AskCallbacks {
   onSources?: (sources: RecallSource[]) => void;
   onToken?: (token: string) => void;
@@ -29,6 +34,7 @@ export interface AskCallbacks {
 export async function streamAsk(
   question: string,
   history: ChatTurn[],
+  attachments: Attachment[],
   cb: AskCallbacks,
   signal?: AbortSignal,
 ): Promise<void> {
@@ -41,7 +47,12 @@ export async function streamAsk(
       ...(config.demoKey ? { authorization: `Bearer ${config.demoKey}` } : {}),
       ...(session ? { "x-linked-session": session } : {}),
     },
-    body: JSON.stringify({ question, scope: { workspace: config.demoWorkspace }, history }),
+    body: JSON.stringify({
+      question,
+      scope: { workspace: config.demoWorkspace },
+      history,
+      ...(attachments.length ? { attachments } : {}),
+    }),
   });
 
   if (!res.ok || !res.body) {

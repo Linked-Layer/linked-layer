@@ -113,6 +113,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       workspace: resolveWorkspace(req, body.scope.workspace),
       holder: getHolder(req),
       history: body.history,
+      attachments: body.attachments,
     });
 
     reply.hijack();

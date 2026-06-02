@@ -36,12 +36,19 @@ export const chatTurnSchema = z.object({
   content: z.string(),
 });
 
+export const attachmentSchema = z.object({
+  name: z.string().max(200),
+  content: z.string().max(15000),
+});
+
 export const askRequestSchema = z.object({
   question: z.string().min(1),
   scope: recallScopeSchema,
   holder: z.string().optional(),
   /** Prior conversation turns (oldest→newest) so follow-ups keep context. */
   history: z.array(chatTurnSchema).max(20).optional(),
+  /** Text contents of files the user attached (capped client-side; for the LLM, not retrieval). */
+  attachments: z.array(attachmentSchema).max(4).optional(),
 });
 
 export const connectorConfigSchema = z.object({

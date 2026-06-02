@@ -9,6 +9,8 @@ export interface AnswerContext {
   sourceTitles: string[];
   /** Prior conversation turns (oldest→newest) so follow-ups keep context. */
   history?: ChatTurn[];
+  /** Text contents of files the user attached (for the LLM, not retrieval). */
+  attachments?: { name: string; content: string }[];
 }
 
 const ASK_SYSTEM = `You are a helpful, knowledgeable assistant for ${BRAND.name}. Answer the user's question directly, accurately and concisely.
@@ -20,15 +22,21 @@ Using the Linked Layer reference:
 - A block of ${BRAND.name}'s own team memory may be attached to the question. Use it (and cite the parts you use as [Title]) ONLY when the user is actually asking about ${BRAND.name} — its product, team, token, or decisions.
 - If the conversation is about ANYTHING else — the user's own project, another repo or link, code, or a general question — IGNORE that reference entirely (do not mention it, do not cite it) and answer from the conversation and your own knowledge.
 
+Attached files:
+- If the user attached files, treat them as the primary material and answer about their contents directly (the Linked Layer reference does not apply to them).
+
 Other rules:
 - Greetings or small talk (e.g. "hi", "привет", "thanks"): reply with one short friendly sentence, no citations.
 - Reply in the user's language. Keep it concise. Never describe what context you were given or explain how you work.`;
 
 function userPrompt(c: AnswerContext): string {
+  const files = (c.attachments ?? []).length
+    ? `\n\nAttached files:\n${c.attachments!.map((a) => `--- ${a.name} ---\n${a.content}`).join("\n\n")}`
+    : "";
   const ref = c.context.trim()
     ? `\n\n---\n${BRAND.name} reference (use ONLY if the question is about ${BRAND.name}, otherwise ignore):\n${c.context}`
     : "";
-  return `Question: ${c.question}${ref}`;
+  return `Question: ${c.question}${files}${ref}`;
 }
 
 /** Stream an answer token-by-token. Falls back to an extractive answer with no API key. */

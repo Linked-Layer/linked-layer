@@ -7,6 +7,7 @@ export interface AskParams {
   workspace: string;
   holder?: string;
   history?: { role: "user" | "assistant"; content: string }[];
+  attachments?: { name: string; content: string }[];
 }
 
 export interface AskHandle {
@@ -32,6 +33,7 @@ export async function ask(params: AskParams): Promise<AskHandle> {
     context: retrieval.context,
     sourceTitles: retrieval.sources.map((s) => s.title),
     history: params.history,
+    attachments: params.attachments,
   });
 
   return { retrieval, stream };

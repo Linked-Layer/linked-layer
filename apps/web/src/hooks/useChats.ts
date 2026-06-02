@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { type RecallSource, streamAsk } from "@/lib/api";
+import { type Attachment, type RecallSource, streamAsk } from "@/lib/api";
 
 export type MessageStatus = "streaming" | "done" | "error";
 
@@ -9,6 +9,8 @@ export interface ChatMessage {
   content: string;
   sources?: RecallSource[];
   status?: MessageStatus;
+  /** Names of files attached to a user message (for display). */
+  files?: string[];
 }
 
 export interface Conversation {
@@ -78,9 +80,9 @@ export function useChats() {
   );
 
   const ask = useCallback(
-    async (question: string) => {
+    async (question: string, attachments: Attachment[] = []) => {
       const q = question.trim();
-      if (!q || streaming) return;
+      if ((!q && attachments.length === 0) || streaming) return;
 
       // Ensure an active conversation exists.
       let convId = activeId;
@@ -99,7 +101,12 @@ export function useChats() {
         .map((m) => ({ role: m.role, content: m.content }))
         .slice(-8);
 
-      const userMsg: ChatMessage = { id: uid(), role: "user", content: q };
+      const userMsg: ChatMessage = {
+        id: uid(),
+        role: "user",
+        content: q,
+        ...(attachments.length ? { files: attachments.map((a) => a.name) } : {}),
+      };
       const aId = uid();
       const aMsg: ChatMessage = { id: aId, role: "assistant", content: "", status: "streaming" };
 
@@ -124,7 +131,7 @@ export function useChats() {
         );
 
       try {
-        await streamAsk(q, history, {
+        await streamAsk(q || "(see attached files)", history, attachments, {
           onSources: (sources: RecallSource[]) => patch((m) => ({ ...m, sources })),
           onToken: (t) => patch((m) => ({ ...m, content: m.content + t })),
           onDone: () => patch((m) => (m.status === "streaming" ? { ...m, status: "done" } : m)),

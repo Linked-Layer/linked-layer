@@ -6,10 +6,24 @@ import type { ChatMessage } from "@/hooks/useChats";
 export function ChatBubble({ m }: { m: ChatMessage }) {
   if (m.role === "user") {
     return (
-      <div className="flex justify-end">
-        <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-violet/20 px-4 py-2.5 text-sm leading-relaxed text-white">
-          {m.content}
-        </div>
+      <div className="flex flex-col items-end gap-1.5">
+        {m.files && m.files.length > 0 && (
+          <div className="flex flex-wrap justify-end gap-1.5">
+            {m.files.map((f, i) => (
+              <span
+                key={`${f}-${i}`}
+                className="flex items-center gap-1 rounded-lg border border-border bg-panel-2 px-2 py-0.5 text-xs text-slate-300"
+              >
+                <FileText className="h-3 w-3 text-violet" /> <span className="max-w-[180px] truncate">{f}</span>
+              </span>
+            ))}
+          </div>
+        )}
+        {m.content && (
+          <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-violet/20 px-4 py-2.5 text-sm leading-relaxed text-white">
+            {m.content}
+          </div>
+        )}
       </div>
     );
   }
