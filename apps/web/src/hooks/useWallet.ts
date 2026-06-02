@@ -46,11 +46,36 @@ export function useWallet() {
 
   useEffect(() => {
     // Wallets may inject slightly after load; re-scan a few times.
+    let cancelled = false;
     const scan = () => setWallets(detect());
+
+    // Eagerly reconnect a previously-approved wallet (no prompt) so the connection
+    // — and the verified session keyed to it — survive a page reload.
+    const tryEager = async () => {
+      const found = detect();
+      if (cancelled || found.length === 0) return;
+      const provider = found[0]!.provider;
+      try {
+        const res = await provider.connect({ onlyIfTrusted: true });
+        if (cancelled || !res?.publicKey) return;
+        setAddress(res.publicKey.toString());
+        setActive(provider);
+        provider.on?.("disconnect", () => {
+          setAddress(null);
+          setActive(null);
+        });
+      } catch {
+        /* not trusted yet — stay disconnected, no prompt */
+      }
+    };
+
     scan();
-    const t1 = setTimeout(scan, 400);
-    const t2 = setTimeout(scan, 1200);
+    const t0 = setTimeout(tryEager, 250);
+    const t1 = setTimeout(scan, 600);
+    const t2 = setTimeout(scan, 1400);
     return () => {
+      cancelled = true;
+      clearTimeout(t0);
       clearTimeout(t1);
       clearTimeout(t2);
     };

@@ -1,8 +1,8 @@
-import { ArrowLeft, Coins, FileText, Loader2, Paperclip, Plus, Send, ShieldCheck, Sparkles, Trash2, X } from "lucide-react";
+import { ArrowLeft, Coins, FileText, Loader2, Paperclip, Plus, Send, ShieldCheck, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChatBubble } from "@/components/ChatBubble";
-import { LogoWord } from "@/components/Logo";
+import { LogoMark, LogoWord } from "@/components/Logo";
 import { WalletButton } from "@/components/WalletButton";
 import { Button } from "@/components/ui/button";
 import { useChats } from "@/hooks/useChats";
@@ -84,13 +84,14 @@ export function ChatApp() {
     <div className="flex h-screen w-screen overflow-hidden bg-bg text-slate-100">
       {/* Sidebar */}
       <aside className="hidden w-72 shrink-0 flex-col border-r border-border bg-panel/50 md:flex">
-        <div className="px-4 py-4">
+        <div className="border-b border-border px-4 py-4">
           <LogoWord />
+          <div className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">Memory console</div>
         </div>
-        <div className="px-3">
+        <div className="px-3 pt-3">
           <button
             onClick={newChat}
-            className="flex w-full items-center gap-2 rounded-xl border border-border bg-panel-2 px-3 py-2.5 text-sm text-slate-200 transition-colors hover:border-violet/60 hover:text-white"
+            className="flex w-full items-center gap-2 rounded-lg border border-border bg-panel-2 px-3 py-2.5 text-sm text-slate-200 transition-colors hover:border-violet/60 hover:text-white"
           >
             <Plus className="h-4 w-4" /> New chat
           </button>
@@ -102,8 +103,10 @@ export function ChatApp() {
             conversations.map((c) => (
               <div
                 key={c.id}
-                className={`group flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
-                  c.id === activeId ? "bg-panel-2 text-white" : "text-slate-300 hover:bg-panel-2/60"
+                className={`group flex items-center gap-2 rounded-r-lg border-l-2 px-3 py-2 text-sm transition-colors ${
+                  c.id === activeId
+                    ? "border-violet bg-panel-2 text-white"
+                    : "border-transparent text-slate-300 hover:bg-panel-2/60"
                 }`}
               >
                 <button onClick={() => selectChat(c.id)} className="flex-1 truncate text-left">
@@ -130,14 +133,18 @@ export function ChatApp() {
 
       {/* Main */}
       <main className="flex flex-1 flex-col">
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-violet/50 to-transparent" />
         <header className="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
-          <div className="flex items-center gap-2 truncate text-sm text-muted">
+          <div className="flex min-w-0 items-center gap-2 truncate text-sm text-muted">
             <Link to="/" className="md:hidden">
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <span className="truncate">{active?.title ?? "New chat"}</span>
           </div>
           <div className="flex items-center gap-3">
+            <span className="hidden rounded-md border border-border bg-panel-2 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted lg:inline">
+              recall(query, scope)
+            </span>
             <div className="flex items-center gap-2 rounded-full border border-border bg-panel-2 px-3 py-1.5 text-xs">
               <Coins className="h-3.5 w-3.5 text-violet" />
               <span className="font-medium text-white">{balance.toLocaleString()} {BRAND.symbol}</span>
@@ -180,13 +187,14 @@ export function ChatApp() {
                   active.messages.map((m) => <ChatBubble key={m.id} m={m} />)
                 ) : (
                   <div className="flex flex-col items-center gap-5 pt-16 text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet/15">
-                      <Sparkles className="h-6 w-6 text-violet" />
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-panel-2">
+                      <LogoMark className="h-7 w-auto" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-white">Ask anything</h2>
-                      <p className="mt-1 text-sm text-muted">
-                        About {BRAND.name}, your own project, code, or general questions.
+                      <h2 className="font-serif text-2xl font-light text-white">Ask your team's memory</h2>
+                      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
+                        Permission-aware recall over a context graph — grounded, cited answers. Or ask about your own
+                        project, code, or anything else.
                       </p>
                     </div>
                     <div className="flex flex-wrap justify-center gap-2">
