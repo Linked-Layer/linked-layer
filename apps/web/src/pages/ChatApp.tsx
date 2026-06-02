@@ -2,6 +2,7 @@ import { ArrowLeft, Coins, FileText, Loader2, Paperclip, Plus, Send, ShieldCheck
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChatBubble } from "@/components/ChatBubble";
+import { ConnectSources } from "@/components/ConnectSources";
 import { LogoWord } from "@/components/Logo";
 import { MemoryGraph } from "@/components/MemoryGraph";
 import { WalletButton } from "@/components/WalletButton";
@@ -119,6 +120,10 @@ export function ChatApp() {
             ))
           )}
         </div>
+        <div className="border-t border-border p-3">
+          <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Sources</div>
+          <ConnectSources variant="mini" />
+        </div>
         <Link
           to="/"
           className="flex items-center gap-2 border-t border-border px-4 py-3 text-sm text-muted transition-colors hover:text-white"
@@ -190,6 +195,7 @@ export function ChatApp() {
                         (your own project, code, general questions).
                       </p>
                     </div>
+                    <ConnectSources />
                     <MemoryGraph onPick={(p) => submit(p)} />
                   </div>
                 )}
