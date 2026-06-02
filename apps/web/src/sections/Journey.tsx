@@ -1,10 +1,10 @@
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { CharReveal } from "@/components/AnimatedText";
 import { MorphField } from "@/components/MorphField";
 import { Button } from "@/components/ui/button";
-import { useNav } from "@/providers/Nav";
 
 interface Chapter {
   kicker: string;
@@ -35,7 +35,7 @@ const CHAPTERS: Chapter[] = [
 ];
 
 export function Journey() {
-  const { navigate } = useNav();
+  const routerNavigate = useNavigate();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const n = CHAPTERS.length;
@@ -137,7 +137,7 @@ export function Journey() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
               >
-                <Button size="lg" onClick={() => navigate("chat")}>
+                <Button size="lg" onClick={() => routerNavigate("/app")}>
                   Open chat <ArrowUpRight className="h-4 w-4" />
                 </Button>
                 <a href="#how">

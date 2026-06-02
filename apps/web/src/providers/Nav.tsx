@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 
 /** The separate "views" of the app — switched in-place, without a route change. */
-export type View = "home" | "chat" | "whitepaper";
+export type View = "home" | "whitepaper";
 
 export interface NavState {
   view: View;

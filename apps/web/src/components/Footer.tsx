@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { LogoWord } from "@/components/Logo";
 import { XIcon } from "@/components/icons";
 import { BRAND } from "@/lib/brand";
@@ -6,6 +7,7 @@ import { useNav } from "@/providers/Nav";
 
 export function Footer() {
   const { navigate } = useNav();
+  const routerNavigate = useNavigate();
   return (
     <footer className="border-t border-border bg-panel/40">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr]">
@@ -26,7 +28,7 @@ export function Footer() {
           <h4 className="text-sm font-semibold text-white">Product</h4>
           <ul className="mt-3 space-y-2 text-sm text-muted">
             <li><button onClick={() => navigate("home")} className="hover:text-white">Home</button></li>
-            <li><button onClick={() => navigate("chat")} className="hover:text-white">Chat</button></li>
+            <li><button onClick={() => routerNavigate("/app")} className="hover:text-white">Chat</button></li>
             <li><button onClick={() => navigate("whitepaper")} className="hover:text-white">Whitepaper</button></li>
           </ul>
         </div>

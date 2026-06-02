@@ -4,7 +4,6 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { WhitepaperSection } from "@/pages/Whitepaper";
 import { NavContext, type View } from "@/providers/Nav";
-import { AskCompanyDemo } from "@/sections/AskCompanyDemo";
 import { CTA } from "@/sections/CTA";
 import { HowItWorks } from "@/sections/HowItWorks";
 import { Integrations } from "@/sections/Integrations";
@@ -41,7 +40,6 @@ export function Home() {
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
               {view === "home" && <HomeView />}
-              {view === "chat" && <Padded><AskCompanyDemo /></Padded>}
               {view === "whitepaper" && <Padded><WhitepaperSection /></Padded>}
             </motion.div>
           </AnimatePresence>

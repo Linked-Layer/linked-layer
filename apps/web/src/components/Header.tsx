@@ -1,31 +1,41 @@
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { LogoWord } from "@/components/Logo";
 import { WalletButton } from "@/components/WalletButton";
 import { XIcon } from "@/components/icons";
 import { config } from "@/lib/config";
 import { type View, useNav } from "@/providers/Nav";
 
-const NAV: { label: string; view: View }[] = [
+interface NavItem {
+  label: string;
+  view?: View;
+  /** Router path — used for the standalone chat app. */
+  to?: string;
+}
+
+const NAV: NavItem[] = [
   { label: "Home", view: "home" },
-  { label: "Chat", view: "chat" },
+  { label: "Chat", to: "/app" },
   { label: "Whitepaper", view: "whitepaper" },
 ];
 
 export function Header() {
   const { view, navigate } = useNav();
+  const routerNavigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  const go = (next: View) => {
-    navigate(next);
+  const go = (item: NavItem) => {
+    if (item.to) routerNavigate(item.to);
+    else if (item.view) navigate(item.view);
     setOpen(false);
   };
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-border/60 bg-bg/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-        <button onClick={() => go("home")} className="text-base" aria-label="Home">
+        <button onClick={() => navigate("home")} className="text-base" aria-label="Home">
           <LogoWord />
         </button>
 
@@ -33,9 +43,9 @@ export function Header() {
           {NAV.map((n) => (
             <button
               key={n.label}
-              onClick={() => go(n.view)}
+              onClick={() => go(n)}
               className={`text-sm transition-colors hover:text-white ${
-                view === n.view ? "text-white" : "text-muted"
+                n.view && view === n.view ? "text-white" : "text-muted"
               }`}
             >
               {n.label}
@@ -71,8 +81,8 @@ export function Header() {
             {NAV.map((n) => (
               <button
                 key={n.label}
-                onClick={() => go(n.view)}
-                className={`py-1 text-left text-sm ${view === n.view ? "text-white" : "text-slate-200"}`}
+                onClick={() => go(n)}
+                className={`py-1 text-left text-sm ${n.view && view === n.view ? "text-white" : "text-slate-200"}`}
               >
                 {n.label}
               </button>
