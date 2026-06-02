@@ -38,6 +38,16 @@ function detect(): DetectedWallet[] {
  * Connect to an injected Solana wallet (Phantom / Solflare / Backpack) directly
  * via the wallet's provider — no WalletConnect project id required.
  */
+/** Remembers which wallet the user connected with, so reload reconnects the right one. */
+const LAST_WALLET = "linked.wallet";
+const readLast = () => {
+  try {
+    return localStorage.getItem(LAST_WALLET);
+  } catch {
+    return null;
+  }
+};
+
 export function useWallet() {
   const [wallets, setWallets] = useState<DetectedWallet[]>([]);
   const [address, setAddress] = useState<string | null>(null);
@@ -45,39 +55,49 @@ export function useWallet() {
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
-    // Wallets may inject slightly after load; re-scan a few times.
+    // Eagerly reconnect a previously-approved wallet (no prompt) so the connection —
+    // and the verified session keyed to it — survive a page reload. Phantom can inject
+    // after first paint, so retry on a schedule until it connects (or attempts run out).
     let cancelled = false;
-    const scan = () => setWallets(detect());
+    let done = false;
 
-    // Eagerly reconnect a previously-approved wallet (no prompt) so the connection
-    // — and the verified session keyed to it — survive a page reload.
     const tryEager = async () => {
+      if (cancelled || done) return;
       const found = detect();
-      if (cancelled || found.length === 0) return;
-      const provider = found[0]!.provider;
+      setWallets(found);
+      if (found.length === 0) return;
+      // Reconnect the SAME wallet the user chose last time (Phantom/Solflare/Backpack),
+      // not just whichever injected first.
+      const lastName = readLast();
+      const target = (lastName && found.find((d) => d.name === lastName)) || found[0]!;
+      const provider = target.provider;
       try {
-        const res = await provider.connect({ onlyIfTrusted: true });
-        if (cancelled || !res?.publicKey) return;
+        // Phantom may have already restored the session — use it without a round-trip.
+        const res = provider.publicKey
+          ? { publicKey: provider.publicKey }
+          : await provider.connect({ onlyIfTrusted: true });
+        if (cancelled || done || !res?.publicKey) return;
+        done = true;
         setAddress(res.publicKey.toString());
         setActive(provider);
         provider.on?.("disconnect", () => {
           setAddress(null);
           setActive(null);
         });
+        provider.on?.("accountChanged", () => {
+          const pk = provider.publicKey;
+          setAddress(pk ? pk.toString() : null);
+        });
       } catch {
         /* not trusted yet — stay disconnected, no prompt */
       }
     };
 
-    scan();
-    const t0 = setTimeout(tryEager, 250);
-    const t1 = setTimeout(scan, 600);
-    const t2 = setTimeout(scan, 1400);
+    setWallets(detect());
+    const timers = [80, 300, 700, 1400, 2500].map((d) => setTimeout(tryEager, d));
     return () => {
       cancelled = true;
-      clearTimeout(t0);
-      clearTimeout(t1);
-      clearTimeout(t2);
+      timers.forEach(clearTimeout);
     };
   }, []);
 
@@ -87,11 +107,19 @@ export function useWallet() {
       const res = await provider.connect();
       setAddress(res.publicKey.toString());
       setActive(provider);
+      // Remember which wallet this is so a reload reconnects the same one.
+      try {
+        const name = detect().find((d) => d.provider === provider)?.name;
+        if (name) localStorage.setItem(LAST_WALLET, name);
+      } catch {
+        /* storage unavailable */
+      }
       const onDisc = () => {
         setAddress(null);
         setActive(null);
       };
       provider.on?.("disconnect", onDisc);
+      provider.on?.("accountChanged", () => setAddress(provider.publicKey ? provider.publicKey.toString() : null));
     } catch {
       /* user rejected */
     } finally {
@@ -102,6 +130,11 @@ export function useWallet() {
   const disconnect = useCallback(async () => {
     try {
       await active?.disconnect();
+    } catch {
+      /* ignore */
+    }
+    try {
+      localStorage.removeItem(LAST_WALLET); // explicit disconnect → don't auto-reconnect
     } catch {
       /* ignore */
     }
