@@ -2,7 +2,8 @@ import { ArrowLeft, Coins, FileText, Loader2, Paperclip, Plus, Send, ShieldCheck
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChatBubble } from "@/components/ChatBubble";
-import { LogoMark, LogoWord } from "@/components/Logo";
+import { LogoWord } from "@/components/Logo";
+import { MemoryGraph } from "@/components/MemoryGraph";
 import { WalletButton } from "@/components/WalletButton";
 import { Button } from "@/components/ui/button";
 import { useChats } from "@/hooks/useChats";
@@ -11,11 +12,6 @@ import { BRAND } from "@/lib/brand";
 import { useWalletCtx } from "@/providers/Wallet";
 
 const FREE_QUESTIONS = 2;
-const SUGGESTIONS = [
-  "What is Linked Layer?",
-  "Why did the team pick Solana?",
-  "How do I get access?",
-];
 
 // File attach: text/code/markdown only, read in-browser. Capped so prompts stay bounded.
 const MAX_FILES = 4;
@@ -186,28 +182,15 @@ export function ChatApp() {
                 {active && active.messages.length > 0 ? (
                   active.messages.map((m) => <ChatBubble key={m.id} m={m} />)
                 ) : (
-                  <div className="flex flex-col items-center gap-5 pt-16 text-center">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-panel-2">
-                      <LogoMark className="h-7 w-auto" />
-                    </div>
+                  <div className="flex flex-col items-center gap-6 pt-6 text-center">
                     <div>
                       <h2 className="font-serif text-2xl font-light text-white">Ask your team's memory</h2>
                       <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
-                        Permission-aware recall over a context graph — grounded, cited answers. Or ask about your own
-                        project, code, or anything else.
+                        Permission-aware recall over a live context graph — click a node, or ask anything below
+                        (your own project, code, general questions).
                       </p>
                     </div>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {SUGGESTIONS.map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => submit(s)}
-                          className="rounded-full border border-border bg-panel-2 px-3 py-1.5 text-xs text-slate-300 transition-colors hover:border-violet/60 hover:text-white"
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
+                    <MemoryGraph onPick={(p) => submit(p)} />
                   </div>
                 )}
               </div>
