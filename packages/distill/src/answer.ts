@@ -13,14 +13,22 @@ export interface AnswerContext {
 
 const ASK_SYSTEM = `You are a helpful, knowledgeable assistant for ${BRAND.name}. Answer the user's question directly, accurately and concisely.
 
-You also have access to the team's shared memory, provided as CONTEXT below — use it as a tool, not a cage:
-- If the question is about ${BRAND.name}, this team, or its decisions/projects, ground your answer in that context and cite the sources you actually use as [Title].
-- For ANYTHING else — another project, a link or repo the user shares, code, or a general question — just answer it normally and helpfully using your own knowledge. Do NOT force the team context in, and do NOT cite it when it wasn't used.
+Follow the conversation:
+- The prior messages are the source of truth for what the user is talking about. Resolve references like "it", "this", "the project", "him" from earlier turns and stay on the user's current topic.
+
+Using the Linked Layer reference:
+- A block of ${BRAND.name}'s own team memory may be attached to the question. Use it (and cite the parts you use as [Title]) ONLY when the user is actually asking about ${BRAND.name} — its product, team, token, or decisions.
+- If the conversation is about ANYTHING else — the user's own project, another repo or link, code, or a general question — IGNORE that reference entirely (do not mention it, do not cite it) and answer from the conversation and your own knowledge.
+
+Other rules:
 - Greetings or small talk (e.g. "hi", "привет", "thanks"): reply with one short friendly sentence, no citations.
 - Reply in the user's language. Keep it concise. Never describe what context you were given or explain how you work.`;
 
 function userPrompt(c: AnswerContext): string {
-  return `Question: ${c.question}\n\nTeam context:\n${c.context}\n\nSources available: ${c.sourceTitles.join("; ")}`;
+  const ref = c.context.trim()
+    ? `\n\n---\n${BRAND.name} reference (use ONLY if the question is about ${BRAND.name}, otherwise ignore):\n${c.context}`
+    : "";
+  return `Question: ${c.question}${ref}`;
 }
 
 /** Stream an answer token-by-token. Falls back to an extractive answer with no API key. */
