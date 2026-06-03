@@ -27,12 +27,6 @@ export function MemoryGraph({ onPick }: { onPick: (prompt: string) => void }) {
     <div className="relative mx-auto aspect-[16/9] w-full max-w-2xl">
       {/* edges */}
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
-        <defs>
-          <linearGradient id="mg-edge" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#7c5cff" stopOpacity="0.6" />
-            <stop offset="1" stopColor="#22d3ee" stopOpacity="0.15" />
-          </linearGradient>
-        </defs>
         {NODES.map((n, i) => (
           <line
             key={i}
@@ -40,7 +34,8 @@ export function MemoryGraph({ onPick }: { onPick: (prompt: string) => void }) {
             y1="50"
             x2={n.x}
             y2={n.y}
-            stroke="url(#mg-edge)"
+            stroke="#7c5cff"
+            strokeOpacity="0.35"
             strokeWidth="0.4"
             strokeDasharray="1.6 2.2"
             vectorEffect="non-scaling-stroke"

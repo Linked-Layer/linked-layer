@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { Check, FileText, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { LogoMark } from "@/components/Logo";
 import type { ChatMessage } from "@/hooks/useChats";
 
@@ -72,8 +74,9 @@ export function ChatBubble({ m }: { m: ChatMessage }) {
   const empty = !m.content && m.status === "streaming";
   // Real provenance: only the sources the answer actually cited.
   const cited = (m.sources ?? []).filter((s) => m.content.includes(s.title));
-  // Strip inline [Title] citation markers — shown as Source cards instead.
-  const display = m.content.replace(/\s*\[[^\]]*\]/g, "");
+  // Strip inline [Title]/[1] citation markers (shown as Source cards instead), but keep
+  // real markdown links like [text](url) (bracket immediately followed by a paren).
+  const display = m.content.replace(/\s?\[[^\]]*\](?!\()/g, "");
 
   return (
     <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex items-start gap-3">
@@ -88,8 +91,10 @@ export function ChatBubble({ m }: { m: ChatMessage }) {
           <RecallTrace />
         ) : (
           <div className={`text-sm leading-relaxed ${isError ? "text-rose-300" : "text-slate-100"}`}>
-            <span className="whitespace-pre-wrap">{display}</span>
-            {m.status === "streaming" && <span className="ml-0.5 animate-pulse text-violet">▍</span>}
+            <div className="space-y-2 [&_a]:text-violet [&_a]:underline [&_code]:rounded [&_code]:bg-panel [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-violet [&_h1]:text-base [&_h1]:font-semibold [&_h2]:text-base [&_h2]:font-semibold [&_h3]:font-semibold [&_li]:ml-1 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:leading-relaxed [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-panel [&_pre]:p-3 [&_strong]:font-semibold [&_strong]:text-white [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{display}</ReactMarkdown>
+            </div>
+            {m.status === "streaming" && <span className="animate-pulse text-violet">▍</span>}
           </div>
         )}
 

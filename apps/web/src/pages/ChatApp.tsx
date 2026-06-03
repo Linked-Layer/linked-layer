@@ -5,6 +5,7 @@ import { ChatBubble } from "@/components/ChatBubble";
 import { ConnectSources } from "@/components/ConnectSources";
 import { LogoWord } from "@/components/Logo";
 import { MemoryGraph } from "@/components/MemoryGraph";
+import { Starfall } from "@/components/Starfall";
 import { WalletButton } from "@/components/WalletButton";
 import { Button } from "@/components/ui/button";
 import { useChats } from "@/hooks/useChats";
@@ -133,9 +134,9 @@ export function ChatApp() {
       </aside>
 
       {/* Main */}
-      <main className="flex flex-1 flex-col">
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-violet/50 to-transparent" />
-        <header className="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
+      <main className="relative flex flex-1 flex-col">
+        <Starfall className="pointer-events-none absolute inset-0 z-0 opacity-70" />
+        <header className="relative z-10 flex items-center justify-between gap-3 border-b border-border px-5 py-3">
           <div className="flex min-w-0 items-center gap-2 truncate text-sm text-muted">
             <Link to="/" className="md:hidden">
               <ArrowLeft className="h-4 w-4" />
@@ -157,7 +158,7 @@ export function ChatApp() {
         </header>
 
         {!verified ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+          <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet/15">
               <ShieldCheck className="h-6 w-6 text-violet" />
             </div>
@@ -182,7 +183,7 @@ export function ChatApp() {
           </div>
         ) : (
           <>
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6">
+            <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto px-4 py-6">
               <div className="mx-auto max-w-3xl space-y-5">
                 {active && active.messages.length > 0 ? (
                   active.messages.map((m) => <ChatBubble key={m.id} m={m} />)
@@ -207,7 +208,7 @@ export function ChatApp() {
                 e.preventDefault();
                 submit(q);
               }}
-              className="border-t border-border px-4 py-3"
+              className="relative z-10 border-t border-border px-4 py-3"
             >
               {files.length > 0 && (
                 <div className="mx-auto mb-2 flex max-w-3xl flex-wrap gap-2">
