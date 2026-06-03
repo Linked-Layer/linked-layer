@@ -61,8 +61,9 @@ export function ConnectSources({ variant = "strip" }: { variant?: "strip" | "min
         </button>
       </div>
       {note && (
-        <div className={`text-xs text-muted ${mini ? "mt-2" : "max-w-md text-center"}`}>
-          Connectors are coming soon — the live demo runs on a sample workspace.
+        <div className={`text-xs leading-relaxed text-muted ${mini ? "mt-2" : "max-w-md text-center"}`}>
+          One-click connectors are coming soon. To connect now, paste a link (GitHub repo, doc, or page)
+          in the chat and Linked Layer will pull it in as context.
         </div>
       )}
     </div>
