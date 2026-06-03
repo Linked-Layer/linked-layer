@@ -51,8 +51,8 @@ export function Starfall({ className, region = 0.5 }: { className?: string; regi
     const mkStar = (): Star => ({
       x: Math.random() * w,
       y: Math.random() * bandH(),
-      r: Math.random() * 1.3 + 0.3,
-      vy: Math.random() * 0.22 + 0.04,
+      r: Math.random() * 1.7 + 0.6,
+      vy: Math.random() * 0.24 + 0.05,
       tw: Math.random() * 0.035 + 0.008,
       phase: Math.random() * Math.PI * 2,
       color: COLORS[Math.floor(Math.random() * COLORS.length)]!,
@@ -81,7 +81,7 @@ export function Starfall({ className, region = 0.5 }: { className?: string; regi
       canvas.height = Math.floor(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       // Density scales with the full width and the band height.
-      const target = Math.min(340, Math.floor((w * bandH()) / 5000));
+      const target = Math.min(460, Math.floor((w * bandH()) / 3400));
       stars.length = 0;
       for (let i = 0; i < target; i++) stars.push(mkStar());
     };
@@ -100,12 +100,15 @@ export function Starfall({ className, region = 0.5 }: { className?: string; regi
         }
         // Twinkle * fade toward the bottom of the band (smooth blend, no hard edge).
         const fade = Math.max(0, 1 - s.y / band);
-        ctx.globalAlpha = (0.25 + 0.4 * (0.5 + 0.5 * Math.sin(s.phase))) * 0.7 * fade;
+        ctx.globalAlpha = (0.45 + 0.5 * (0.5 + 0.5 * Math.sin(s.phase))) * fade;
         ctx.fillStyle = s.color;
+        ctx.shadowColor = s.color;
+        ctx.shadowBlur = s.r * 3;
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fill();
       }
+      ctx.shadowBlur = 0;
 
       meteorTimer -= 1;
       if (meteorTimer <= 0 && meteors.length < 2) {

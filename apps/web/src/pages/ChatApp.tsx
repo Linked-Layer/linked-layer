@@ -136,7 +136,7 @@ export function ChatApp() {
       {/* Main */}
       <main className="relative flex flex-1 flex-col">
         <Starfall
-          className="pointer-events-none absolute inset-0 z-0 opacity-70"
+          className="pointer-events-none absolute inset-0 z-0 h-full w-full opacity-90"
           region={active && active.messages.length > 0 ? 0.25 : 0.5}
         />
         <header className="relative z-10 flex items-center justify-between gap-3 border-b border-border px-5 py-3">
