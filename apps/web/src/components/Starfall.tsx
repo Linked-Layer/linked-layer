@@ -19,7 +19,7 @@ interface Meteor {
   len: number;
 }
 
-const COLORS = ["#ffffff", "#b3a6ea", "#7c5cff", "#22d3ee"];
+const COLORS = ["#ffffff"];
 
 /**
  * Subtle animated starfall for the chat background. Spans the full width; stars live
