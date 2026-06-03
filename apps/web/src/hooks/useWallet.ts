@@ -56,10 +56,25 @@ export function useWallet() {
 
   useEffect(() => {
     // Eagerly reconnect a previously-approved wallet (no prompt) so the connection —
-    // and the verified session keyed to it — survive a page reload. Phantom can inject
-    // after first paint, so retry on a schedule until it connects (or attempts run out).
+    // and the verified session keyed to it — survive a page reload. Wallets inject at
+    // different times and reconnect differently (Phantom answers onlyIfTrusted;
+    // Backpack tends to AUTO-connect and emit a 'connect' event), so we both retry the
+    // silent connect AND listen for the auto-connect event.
     let cancelled = false;
     let done = false;
+    let listening = false;
+
+    const onConnected = (provider: SolanaProvider, pk?: { toString(): string } | null) => {
+      if (cancelled || done || !pk) return;
+      done = true;
+      setAddress(pk.toString());
+      setActive(provider);
+      provider.on?.("disconnect", () => {
+        setAddress(null);
+        setActive(null);
+      });
+      provider.on?.("accountChanged", () => setAddress(provider.publicKey ? provider.publicKey.toString() : null));
+    };
 
     const tryEager = async () => {
       if (cancelled || done) return;
@@ -71,30 +86,28 @@ export function useWallet() {
       const lastName = readLast();
       const target = (lastName && found.find((d) => d.name === lastName)) || found[0]!;
       const provider = target.provider;
+
+      // Catch wallets that auto-connect on load (Backpack) and emit 'connect'.
+      if (!listening) {
+        listening = true;
+        provider.on?.("connect", () => onConnected(provider, provider.publicKey));
+      }
+      // Session already restored by the wallet?
+      if (provider.publicKey) {
+        onConnected(provider, provider.publicKey);
+        return;
+      }
+      // Otherwise ask for a silent reconnect (no prompt). Unsupported/untrusted → ignore.
       try {
-        // Phantom may have already restored the session — use it without a round-trip.
-        const res = provider.publicKey
-          ? { publicKey: provider.publicKey }
-          : await provider.connect({ onlyIfTrusted: true });
-        if (cancelled || done || !res?.publicKey) return;
-        done = true;
-        setAddress(res.publicKey.toString());
-        setActive(provider);
-        provider.on?.("disconnect", () => {
-          setAddress(null);
-          setActive(null);
-        });
-        provider.on?.("accountChanged", () => {
-          const pk = provider.publicKey;
-          setAddress(pk ? pk.toString() : null);
-        });
+        const res = await provider.connect({ onlyIfTrusted: true });
+        onConnected(provider, res?.publicKey ?? provider.publicKey);
       } catch {
-        /* not trusted yet — stay disconnected, no prompt */
+        /* not trusted / not supported — the 'connect' listener may still fire */
       }
     };
 
     setWallets(detect());
-    const timers = [80, 300, 700, 1400, 2500].map((d) => setTimeout(tryEager, d));
+    const timers = [80, 300, 700, 1400, 2500, 4000].map((d) => setTimeout(tryEager, d));
     return () => {
       cancelled = true;
       timers.forEach(clearTimeout);
