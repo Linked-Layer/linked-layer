@@ -13,13 +13,14 @@ interface GraphNode {
   prompt: string;
 }
 
+// Evenly spaced around the hub (symmetric hexagon): two top, two sides, two bottom.
 const NODES: GraphNode[] = [
-  { x: 15, y: 18, kind: "Decision", label: "Solana for x402", prompt: "Why did the team pick Solana?" },
-  { x: 85, y: 18, kind: "Thread", label: "Agent pricing", prompt: "How is agent pricing set?" },
-  { x: 8, y: 52, kind: "Doc", label: "Architecture", prompt: "What is the architecture?" },
-  { x: 92, y: 54, kind: "Action", label: "MCP server", prompt: "What's the status of the MCP server?" },
-  { x: 26, y: 86, kind: "Doc", label: "$LINKED token", prompt: "How does the $LINKED token work?" },
-  { x: 74, y: 86, kind: "Doc", label: "Getting access", prompt: "How do I get access?" },
+  { x: 28, y: 16, kind: "Decision", label: "Solana for x402", prompt: "Why did the team pick Solana?" },
+  { x: 72, y: 16, kind: "Thread", label: "Agent pricing", prompt: "How is agent pricing set?" },
+  { x: 9, y: 50, kind: "Doc", label: "Architecture", prompt: "What is the architecture?" },
+  { x: 91, y: 50, kind: "Action", label: "MCP server", prompt: "What's the status of the MCP server?" },
+  { x: 28, y: 84, kind: "Doc", label: "$LINKED token", prompt: "How does the $LINKED token work?" },
+  { x: 72, y: 84, kind: "Doc", label: "Getting access", prompt: "How do I get access?" },
 ];
 
 export function MemoryGraph({ onPick }: { onPick: (prompt: string) => void }) {
@@ -45,11 +46,13 @@ export function MemoryGraph({ onPick }: { onPick: (prompt: string) => void }) {
         ))}
       </svg>
 
-      {/* hub */}
+      {/* hub — the logo on a soft glow with a pulsing ring (no boxy background) */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-        <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-violet/50 bg-panel-2 shadow-glow">
-          <span className="absolute inset-0 -z-10 animate-ping rounded-2xl bg-violet/10" />
-          <LogoMark className="h-7 w-auto" />
+        <div className="relative flex h-20 w-20 items-center justify-center">
+          <span className="absolute h-16 w-16 rounded-full bg-violet/20 blur-2xl" />
+          <span className="absolute h-14 w-14 animate-ping rounded-full border border-violet/30" />
+          <span className="absolute h-20 w-20 rounded-full border border-violet/10" />
+          <LogoMark className="relative h-9 w-auto drop-shadow-[0_0_14px_rgba(124,92,255,0.55)]" />
         </div>
       </div>
 

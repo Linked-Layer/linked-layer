@@ -135,7 +135,10 @@ export function ChatApp() {
 
       {/* Main */}
       <main className="relative flex flex-1 flex-col">
-        <Starfall className="pointer-events-none absolute inset-0 z-0 opacity-70" />
+        <Starfall
+          className="pointer-events-none absolute inset-0 z-0 opacity-70"
+          region={active && active.messages.length > 0 ? 0.25 : 0.5}
+        />
         <header className="relative z-10 flex items-center justify-between gap-3 border-b border-border px-5 py-3">
           <div className="flex min-w-0 items-center gap-2 truncate text-sm text-muted">
             <Link to="/" className="md:hidden">

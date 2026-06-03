@@ -21,10 +21,17 @@ interface Meteor {
 
 const COLORS = ["#ffffff", "#b3a6ea", "#7c5cff", "#22d3ee"];
 
-/** Subtle animated starfall for the chat background: drifting twinkling stars + the
- *  occasional shooting star. Canvas-based, pointer-events-none, sized to its parent. */
-export function Starfall({ className }: { className?: string }) {
+/**
+ * Subtle animated starfall for the chat background. Spans the full width; stars live
+ * in a band from the top down to `region` of the height (0.5 when the chat is empty,
+ * 0.25 once there's a conversation) and fade out toward the band's bottom edge.
+ */
+export function Starfall({ className, region = 0.5 }: { className?: string; region?: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const regionRef = useRef(region);
+  useEffect(() => {
+    regionRef.current = region;
+  }, [region]);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -39,9 +46,11 @@ export function Starfall({ className }: { className?: string }) {
     const meteors: Meteor[] = [];
     let meteorTimer = 120;
 
+    const bandH = () => Math.max(80, h * regionRef.current);
+
     const mkStar = (): Star => ({
       x: Math.random() * w,
-      y: Math.random() * h,
+      y: Math.random() * bandH(),
       r: Math.random() * 1.3 + 0.3,
       vy: Math.random() * 0.22 + 0.04,
       tw: Math.random() * 0.035 + 0.008,
@@ -53,7 +62,7 @@ export function Starfall({ className }: { className?: string }) {
       const fromLeft = Math.random() < 0.5;
       const speed = 6 + Math.random() * 4;
       meteors.push({
-        x: fromLeft ? Math.random() * w * 0.5 : w * 0.5 + Math.random() * w * 0.5,
+        x: Math.random() * w,
         y: -10,
         vx: (fromLeft ? 1 : -1) * speed * 0.55,
         vy: speed,
@@ -71,7 +80,8 @@ export function Starfall({ className }: { className?: string }) {
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const target = Math.min(260, Math.floor((w * h) / 9000));
+      // Density scales with the full width and the band height.
+      const target = Math.min(340, Math.floor((w * bandH()) / 5000));
       stars.length = 0;
       for (let i = 0; i < target; i++) stars.push(mkStar());
     };
@@ -79,15 +89,18 @@ export function Starfall({ className }: { className?: string }) {
     const tick = () => {
       raf = requestAnimationFrame(tick);
       ctx.clearRect(0, 0, w, h);
+      const band = bandH();
 
       for (const s of stars) {
         s.y += s.vy;
         s.phase += s.tw;
-        if (s.y > h + 2) {
+        if (s.y > band) {
           s.y = -2;
           s.x = Math.random() * w;
         }
-        ctx.globalAlpha = (0.25 + 0.4 * (0.5 + 0.5 * Math.sin(s.phase))) * 0.7;
+        // Twinkle * fade toward the bottom of the band (smooth blend, no hard edge).
+        const fade = Math.max(0, 1 - s.y / band);
+        ctx.globalAlpha = (0.25 + 0.4 * (0.5 + 0.5 * Math.sin(s.phase))) * 0.7 * fade;
         ctx.fillStyle = s.color;
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
@@ -109,23 +122,29 @@ export function Starfall({ className }: { className?: string }) {
         const grad = ctx.createLinearGradient(m.x, m.y, tx, ty);
         grad.addColorStop(0, "rgba(179,166,234,0.85)");
         grad.addColorStop(1, "rgba(179,166,234,0)");
-        ctx.globalAlpha = Math.max(0, 1 - m.life / m.max);
+        const fade = Math.max(0, 1 - m.y / band);
+        ctx.globalAlpha = Math.max(0, 1 - m.life / m.max) * fade;
         ctx.strokeStyle = grad;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(m.x, m.y);
         ctx.lineTo(tx, ty);
         ctx.stroke();
-        if (m.life >= m.max || m.y > h + 60) meteors.splice(i, 1);
+        if (m.life >= m.max || m.y > band) meteors.splice(i, 1);
       }
       ctx.globalAlpha = 1;
     };
 
     resize();
+    // Re-measure once layout settles and on any container size change (fixes a
+    // zero/!wrong size at first paint that made stars cluster in one corner).
+    const ro = new ResizeObserver(() => resize());
+    ro.observe(canvas);
     window.addEventListener("resize", resize);
     raf = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(raf);
+      ro.disconnect();
       window.removeEventListener("resize", resize);
     };
   }, []);
