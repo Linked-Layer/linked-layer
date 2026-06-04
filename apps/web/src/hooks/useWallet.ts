@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /** Minimal shape of an injected Solana wallet provider. */
 interface SolanaProvider {
@@ -53,6 +53,10 @@ export function useWallet() {
   const [address, setAddress] = useState<string | null>(null);
   const [active, setActive] = useState<SolanaProvider | null>(null);
   const [connecting, setConnecting] = useState(false);
+  // Set when the user explicitly disconnects. Blocks the eager-reconnect retries
+  // AND the 'connect' event some wallets (Backpack) re-emit right after disconnect,
+  // which would otherwise silently reconnect them.
+  const suppressReconnect = useRef(false);
 
   useEffect(() => {
     // Eagerly reconnect a previously-approved wallet (no prompt) so the connection —
@@ -65,7 +69,7 @@ export function useWallet() {
     let listening = false;
 
     const onConnected = (provider: SolanaProvider, pk?: { toString(): string } | null) => {
-      if (cancelled || done || !pk) return;
+      if (cancelled || done || !pk || suppressReconnect.current) return;
       done = true;
       setAddress(pk.toString());
       setActive(provider);
@@ -77,7 +81,7 @@ export function useWallet() {
     };
 
     const tryEager = async () => {
-      if (cancelled || done) return;
+      if (cancelled || done || suppressReconnect.current) return;
       const found = detect();
       setWallets(found);
       if (found.length === 0) return;
@@ -115,6 +119,7 @@ export function useWallet() {
   }, []);
 
   const connect = useCallback(async (provider: SolanaProvider) => {
+    suppressReconnect.current = false; // user is explicitly connecting again
     setConnecting(true);
     try {
       const res = await provider.connect();
@@ -141,18 +146,21 @@ export function useWallet() {
   }, []);
 
   const disconnect = useCallback(async () => {
+    suppressReconnect.current = true; // block eager + 'connect'-event auto-reconnect
+    // Drop UI state first so the button flips immediately, even if the wallet's
+    // own disconnect() is slow or a no-op (some wallets keep the session alive).
+    setAddress(null);
+    setActive(null);
+    try {
+      localStorage.removeItem(LAST_WALLET); // explicit disconnect → don't auto-reconnect on reload
+    } catch {
+      /* ignore */
+    }
     try {
       await active?.disconnect();
     } catch {
       /* ignore */
     }
-    try {
-      localStorage.removeItem(LAST_WALLET); // explicit disconnect → don't auto-reconnect
-    } catch {
-      /* ignore */
-    }
-    setAddress(null);
-    setActive(null);
   }, [active]);
 
   /** Ask the connected wallet to sign a UTF-8 message; returns the raw signature bytes. */
