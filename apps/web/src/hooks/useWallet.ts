@@ -77,7 +77,13 @@ export function useWallet() {
         setAddress(null);
         setActive(null);
       });
-      provider.on?.("accountChanged", () => setAddress(provider.publicKey ? provider.publicKey.toString() : null));
+      provider.on?.("accountChanged", () => {
+        // Ignore wallet-driven account events after an explicit disconnect — some
+        // wallets (Backpack) keep publicKey set and fire accountChanged, which would
+        // otherwise silently reconnect us right after the user disconnected.
+        if (suppressReconnect.current) return;
+        setAddress(provider.publicKey ? provider.publicKey.toString() : null);
+      });
     };
 
     const tryEager = async () => {
@@ -137,7 +143,10 @@ export function useWallet() {
         setActive(null);
       };
       provider.on?.("disconnect", onDisc);
-      provider.on?.("accountChanged", () => setAddress(provider.publicKey ? provider.publicKey.toString() : null));
+      provider.on?.("accountChanged", () => {
+        if (suppressReconnect.current) return;
+        setAddress(provider.publicKey ? provider.publicKey.toString() : null);
+      });
     } catch {
       /* user rejected */
     } finally {
