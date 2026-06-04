@@ -92,12 +92,8 @@ export function Starfall({ className, region = 0.5 }: { className?: string; regi
       const band = bandH();
 
       for (const s of stars) {
-        s.y += s.vy;
+        // Stars stay put (no falling — otherwise it reads as snow); they only twinkle.
         s.phase += s.tw;
-        if (s.y > band) {
-          s.y = -2;
-          s.x = Math.random() * w;
-        }
         // Twinkle * fade toward the bottom of the band (smooth blend, no hard edge).
         const fade = Math.max(0, 1 - s.y / band);
         ctx.globalAlpha = (0.45 + 0.5 * (0.5 + 0.5 * Math.sin(s.phase))) * fade;

@@ -1,4 +1,4 @@
-import { ArrowLeft, Coins, FileText, Loader2, Paperclip, Plus, Send, ShieldCheck, Trash2, X } from "lucide-react";
+import { ArrowLeft, Coins, FileText, Loader2, PanelLeft, Paperclip, Plus, Send, ShieldCheck, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChatBubble } from "@/components/ChatBubble";
@@ -28,6 +28,7 @@ export function ChatApp() {
   const [q, setQ] = useState("");
   const [files, setFiles] = useState<Attachment[]>([]);
   const [fileNote, setFileNote] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,11 +81,25 @@ export function ChatApp() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-bg text-slate-100">
-      {/* Sidebar */}
-      <aside className="hidden w-72 shrink-0 flex-col border-r border-border bg-panel/50 md:flex">
-        <div className="border-b border-border px-4 py-4">
-          <LogoWord />
-          <div className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">Memory console</div>
+      {/* Sidebar — collapsible */}
+      <aside
+        className={`hidden shrink-0 flex-col overflow-hidden border-border bg-panel/50 transition-[width] duration-200 ease-out md:flex ${
+          sidebarOpen ? "w-72 border-r" : "w-0 border-r-0"
+        }`}
+      >
+        <div className="flex items-start justify-between gap-2 border-b border-border px-4 py-4">
+          <div className="min-w-0">
+            <LogoWord />
+            <div className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">Memory console</div>
+          </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            title="Collapse sidebar"
+            aria-label="Collapse sidebar"
+            className="shrink-0 rounded-lg border border-border bg-panel-2 p-1.5 text-muted transition-colors hover:border-violet/60 hover:text-white"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </button>
         </div>
         <div className="px-3 pt-3">
           <button
@@ -141,6 +156,16 @@ export function ChatApp() {
         />
         <header className="relative z-10 flex items-center justify-between gap-3 border-b border-border px-5 py-3">
           <div className="flex min-w-0 items-center gap-2 truncate text-sm text-muted">
+            {!sidebarOpen && (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                title="Show sidebar"
+                aria-label="Show sidebar"
+                className="hidden shrink-0 rounded-lg border border-border bg-panel-2 p-1.5 text-muted transition-colors hover:border-violet/60 hover:text-white md:inline-flex"
+              >
+                <PanelLeft className="h-4 w-4" />
+              </button>
+            )}
             <Link to="/" className="md:hidden">
               <ArrowLeft className="h-4 w-4" />
             </Link>
