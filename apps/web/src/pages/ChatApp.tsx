@@ -147,9 +147,6 @@ export function ChatApp() {
             <span className="truncate">{active?.title ?? "New chat"}</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden rounded-md border border-border bg-panel-2 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted lg:inline">
-              recall(query, scope)
-            </span>
             <div className="flex items-center gap-2 rounded-full border border-border bg-panel-2 px-3 py-1.5 text-xs">
               <Coins className="h-3.5 w-3.5 text-violet" />
               <span className="font-medium text-white">{balance.toLocaleString()} {BRAND.symbol}</span>
