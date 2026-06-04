@@ -40,11 +40,21 @@ function detect(): DetectedWallet[] {
  */
 /** Remembers which wallet the user connected with, so reload reconnects the right one. */
 const LAST_WALLET = "linked.wallet";
+/** Set when the user explicitly disconnects; persists across reloads so we DON'T
+ * auto-reconnect them until they manually connect again. */
+const DISCONNECTED = "linked.disconnected";
 const readLast = () => {
   try {
     return localStorage.getItem(LAST_WALLET);
   } catch {
     return null;
+  }
+};
+const wasDisconnected = () => {
+  try {
+    return localStorage.getItem(DISCONNECTED) === "1";
+  } catch {
+    return false;
   }
 };
 
@@ -55,8 +65,9 @@ export function useWallet() {
   const [connecting, setConnecting] = useState(false);
   // Set when the user explicitly disconnects. Blocks the eager-reconnect retries
   // AND the 'connect' event some wallets (Backpack) re-emit right after disconnect,
-  // which would otherwise silently reconnect them.
-  const suppressReconnect = useRef(false);
+  // which would otherwise silently reconnect them. Initialized from a persisted flag
+  // so an explicit disconnect also survives a page reload (no auto-reconnect).
+  const suppressReconnect = useRef(wasDisconnected());
 
   useEffect(() => {
     // Eagerly reconnect a previously-approved wallet (no prompt) so the connection —
@@ -87,10 +98,12 @@ export function useWallet() {
     };
 
     const tryEager = async () => {
-      if (cancelled || done || suppressReconnect.current) return;
+      if (cancelled || done) return;
       const found = detect();
-      setWallets(found);
+      setWallets(found); // always populate the picker, even if we won't auto-reconnect
       if (found.length === 0) return;
+      // The user explicitly disconnected → list wallets but DON'T auto-reconnect them.
+      if (suppressReconnect.current) return;
       // Reconnect the SAME wallet the user chose last time (Phantom/Solflare/Backpack),
       // not just whichever injected first.
       const lastName = readLast();
@@ -126,6 +139,11 @@ export function useWallet() {
 
   const connect = useCallback(async (provider: SolanaProvider) => {
     suppressReconnect.current = false; // user is explicitly connecting again
+    try {
+      localStorage.removeItem(DISCONNECTED); // re-enable auto-reconnect on future reloads
+    } catch {
+      /* ignore */
+    }
     setConnecting(true);
     try {
       const res = await provider.connect();
@@ -162,6 +180,7 @@ export function useWallet() {
     setActive(null);
     try {
       localStorage.removeItem(LAST_WALLET); // explicit disconnect → don't auto-reconnect on reload
+      localStorage.setItem(DISCONNECTED, "1"); // ...and keep it that way across reloads
     } catch {
       /* ignore */
     }
