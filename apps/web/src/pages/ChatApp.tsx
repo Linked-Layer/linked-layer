@@ -5,6 +5,7 @@ import { ChatBubble } from "@/components/ChatBubble";
 import { ConnectSources } from "@/components/ConnectSources";
 import { LogoWord } from "@/components/Logo";
 import { MemoryGraph } from "@/components/MemoryGraph";
+import { Onboarding, type OnboardingStep } from "@/components/Onboarding";
 import { Starfall } from "@/components/Starfall";
 import { WalletButton } from "@/components/WalletButton";
 import { Button } from "@/components/ui/button";
@@ -29,13 +30,64 @@ export function ChatApp() {
   const [files, setFiles] = useState<Attachment[]>([]);
   const [fileNote, setFileNote] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [onboarding, setOnboarding] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const graphRef = useRef<HTMLDivElement>(null);
+  const composerRef = useRef<HTMLDivElement>(null);
+  const sourcesRef = useRef<HTMLDivElement>(null);
+  const balanceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [active?.messages]);
+
+  // First-run tour: show once when the verified empty state first appears.
+  const showEmpty = verified && (!active || active.messages.length === 0);
+  useEffect(() => {
+    if (!showEmpty) return;
+    try {
+      if (localStorage.getItem("linked.onboarded") === "1") return;
+    } catch {
+      return;
+    }
+    const t = setTimeout(() => setOnboarding(true), 450); // let the empty state lay out
+    return () => clearTimeout(t);
+  }, [showEmpty]);
+
+  const finishOnboarding = () => {
+    setOnboarding(false);
+    try {
+      localStorage.setItem("linked.onboarded", "1");
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const onboardingSteps: OnboardingStep[] = [
+    {
+      getEl: () => graphRef.current,
+      title: "Demo prompts",
+      body:
+        "Tap any of these to try a question about Linked Layer. In test mode Slack, GitHub & co. are connected, so you get real, source-grounded answers.",
+    },
+    {
+      getEl: () => composerRef.current,
+      title: "…or ask anything",
+      body: "Type your own question — your project, code, a pasted GitHub link, or anything general. Attach text/code files with the clip.",
+    },
+    {
+      getEl: () => sourcesRef.current,
+      title: "Your tools, one context",
+      body: "These are the sources Linked Layer pulls context from. One-click connectors are coming soon — for now, paste a link in the chat.",
+    },
+    {
+      getEl: () => balanceRef.current,
+      title: "Free preview",
+      body: `You get ${FREE_QUESTIONS} free questions. Hold ${BRAND.symbol} for unlimited access.`,
+    },
+  ];
 
   const balance = session?.balance ?? 0;
   const holder = balance > 0;
@@ -174,7 +226,7 @@ export function ChatApp() {
             <span className="truncate">{active?.title ?? "New chat"}</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 rounded-full border border-border bg-panel-2 px-3 py-1.5 text-xs">
+            <div ref={balanceRef} className="flex items-center gap-2 rounded-full border border-border bg-panel-2 px-3 py-1.5 text-xs">
               <Coins className="h-3.5 w-3.5 text-violet" />
               <span className="font-medium text-white">{balance.toLocaleString()} {BRAND.symbol}</span>
               <span className="text-muted">·</span>
@@ -223,8 +275,16 @@ export function ChatApp() {
                         (your own project, code, general questions).
                       </p>
                     </div>
-                    <ConnectSources />
-                    <MemoryGraph onPick={(p) => submit(p)} />
+                    <div ref={sourcesRef}>
+                      <ConnectSources />
+                    </div>
+                    <div ref={graphRef} className="w-full">
+                      <MemoryGraph onPick={(p) => submit(p)} />
+                      <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-slate-500">
+                        (These are demo prompts. In test mode Slack, GitHub & co. are connected — tap one to explore
+                        real, source-grounded answers.)
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -258,7 +318,7 @@ export function ChatApp() {
                   ))}
                 </div>
               )}
-              <div className="mx-auto flex max-w-3xl items-end gap-2">
+              <div ref={composerRef} className="mx-auto flex max-w-3xl items-end gap-2">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -299,6 +359,8 @@ export function ChatApp() {
           </>
         )}
       </main>
+
+      {onboarding && <Onboarding steps={onboardingSteps} onClose={finishOnboarding} />}
     </div>
   );
 }
