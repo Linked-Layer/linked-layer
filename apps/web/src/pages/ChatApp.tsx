@@ -89,7 +89,9 @@ export function ChatApp() {
       >
         <div className="flex items-start justify-between gap-2 border-b border-border px-4 py-4">
           <div className="min-w-0">
-            <LogoWord />
+            <Link to="/" title="Back to home" className="inline-block rounded transition-opacity hover:opacity-80">
+              <LogoWord />
+            </Link>
             <div className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">Memory console</div>
           </div>
           <button

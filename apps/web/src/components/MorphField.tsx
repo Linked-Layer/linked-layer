@@ -40,24 +40,10 @@ function buildShapes(): Pt[][] {
     ctx.fillText("M", w / 2, h * 0.54);
   }, COUNT);
 
-  // 1 — context graph: hub + ring of nodes + connecting spokes
-  const graph: Pt[] = [];
-  const cx = 0.5;
-  const cy = 0.5;
-  const R = 0.34;
-  const ring = 7;
-  for (let i = 0; i < ring; i++) {
-    const a = (i / ring) * Math.PI * 2;
-    const nx = cx + Math.cos(a) * R;
-    const ny = cy + Math.sin(a) * R;
-    // node cluster
-    for (let k = 0; k < 6; k++) graph.push({ x: nx + (Math.random() - 0.5) * 0.03, y: ny + (Math.random() - 0.5) * 0.03 });
-    // spoke to center
-    const seg = 20;
-    for (let s = 0; s < seg; s++) graph.push({ x: cx + (nx - cx) * (s / seg), y: cy + (ny - cy) * (s / seg) });
-  }
-  for (let k = 0; k < 10; k++) graph.push({ x: cx + (Math.random() - 0.5) * 0.04, y: cy + (Math.random() - 0.5) * 0.04 });
-  const graphPts = resample(graph, COUNT);
+  // 1 — several slim stars arranged in a WIDE ring AROUND the centre text. Points are
+  // placed directly along each star's outline (not filled) so the particles trace thin
+  // line-art stars — like the old single shape — and the wide ring keeps them off the text.
+  const stars = buildStars(COUNT);
 
   // 2 — chat bubble (ask the company)
   const bubble = sampleDrawing((ctx, w, h) => {
@@ -91,13 +77,45 @@ function buildShapes(): Pt[][] {
     for (let i = 0; i < 3; i++) roundRect(ctx, w * 0.22, h * (0.28 + i * 0.18), w * 0.56, h * 0.1, 16), ctx.fill();
   }, COUNT);
 
-  return [letter, graphPts, bubble, layers];
+  return [letter, stars, bubble, layers];
 }
 
-function resample(pts: Pt[], count: number): Pt[] {
-  if (pts.length === 0) return Array.from({ length: count }, () => ({ x: 0.5, y: 0.5 }));
+/**
+ * `count` normalized points lying on the OUTLINES of several small 5-pointed stars,
+ * arranged in a wide ring around the centre. Coords may fall slightly outside 0..1 so
+ * the stars sit further out (around the text block), not over it.
+ */
+function buildStars(count: number): Pt[] {
   const out: Pt[] = [];
-  for (let i = 0; i < count; i++) out.push(pts[Math.floor((i / count) * pts.length)]!);
+  const N = 6; // stars around the ring
+  const ringR = 0.52; // distance of each star from centre (normalized)
+  const outer = 0.12; // star radius — big enough that the outline reads as thin lines
+  const inner = outer * 0.42;
+  const per = Math.floor(count / N);
+  for (let i = 0; i < N; i++) {
+    const ang = (i / N) * Math.PI * 2 - Math.PI / 2;
+    const scx = 0.5 + Math.cos(ang) * ringR;
+    const scy = 0.5 + Math.sin(ang) * ringR;
+    // 10 alternating outer/inner vertices of the star
+    const verts: Pt[] = [];
+    let rot = -Math.PI / 2;
+    const step = Math.PI / 5;
+    for (let k = 0; k < 10; k++) {
+      const r = k % 2 === 0 ? outer : inner;
+      verts.push({ x: scx + Math.cos(rot) * r, y: scy + Math.sin(rot) * r });
+      rot += step;
+    }
+    // evenly distribute this star's points along its 10 edges
+    for (let p = 0; p < per; p++) {
+      const t = (p / per) * 10;
+      const e = Math.floor(t) % 10;
+      const f = t - Math.floor(t);
+      const a = verts[e]!;
+      const b = verts[(e + 1) % 10]!;
+      out.push({ x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f });
+    }
+  }
+  while (out.length < count) out.push(out[out.length - 1]!);
   return out;
 }
 
