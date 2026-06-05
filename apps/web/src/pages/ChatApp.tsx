@@ -14,7 +14,7 @@ import { type Attachment } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
 import { useWalletCtx } from "@/providers/Wallet";
 
-const FREE_QUESTIONS = 2;
+const FREE_QUESTIONS = 10;
 
 // File attach: text/code/markdown only, read in-browser. Capped so prompts stay bounded.
 const MAX_FILES = 4;

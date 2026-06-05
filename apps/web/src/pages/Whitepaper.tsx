@@ -222,7 +222,7 @@ export function WhitepaperSection() {
 
           <Block id="faq" title="12. FAQ">
             <ul>
-              <li><strong>Do I need to hold {BRAND.symbol} to try it?</strong> No — connect a wallet and verify to ask a couple of questions free. Holding {BRAND.symbol} unlocks unlimited access and higher tiers.</li>
+              <li><strong>Do I need to hold {BRAND.symbol} to try it?</strong> No — connect a wallet and verify to ask 10 questions free. Holding {BRAND.symbol} unlocks unlimited access and higher tiers.</li>
               <li><strong>Is my data exposed to other holders?</strong> Never. Retrieval is permission-filtered; you only ever see what your identity is allowed to see in the source tool.</li>
               <li><strong>Which tools does it connect?</strong> Slack and GitHub to start, with documents, trackers, calls and CRM on the roadmap. The connector model is uniform, so more sources slot in without re-architecting.</li>
               <li><strong>How do agents pay?</strong> Per call via x402 (USDC / {BRAND.symbol}); fees route to the treasury for buyback &amp; burn.</li>
