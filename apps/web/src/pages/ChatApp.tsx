@@ -154,7 +154,7 @@ export function ChatApp() {
           className="pointer-events-none absolute inset-0 z-0 h-full w-full opacity-90"
           region={active && active.messages.length > 0 ? 0.25 : 0.5}
         />
-        <header className="relative z-10 flex items-center justify-between gap-3 border-b border-border px-5 py-3">
+        <header className="relative z-30 flex items-center justify-between gap-3 border-b border-border px-5 py-3">
           <div className="flex min-w-0 items-center gap-2 truncate text-sm text-muted">
             {!sidebarOpen && (
               <button
