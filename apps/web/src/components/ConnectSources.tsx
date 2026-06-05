@@ -5,21 +5,19 @@ import { SiConfluence, SiGithub, SiGoogledrive, SiJira, SiLinear, SiNotion, SiSl
 
 interface Source {
   name: string;
-  color: string;
   Icon: IconType;
-  live?: boolean;
 }
 
-// Tools Linked Layer ingests into the shared context graph. Slack + GitHub are live;
-// the rest are on the roadmap (shown so it's clear you link your own tools).
+// Tools Linked Layer will ingest into the shared context graph. One-click connectors are
+// coming soon, so the tiles are shown greyed-out (you link your own tools here).
 const SOURCES: Source[] = [
-  { name: "Slack", color: "#4A154B", Icon: SiSlack, live: true },
-  { name: "GitHub", color: "#1F2328", Icon: SiGithub, live: true },
-  { name: "Notion", color: "#000000", Icon: SiNotion },
-  { name: "Google Drive", color: "#1A73E8", Icon: SiGoogledrive },
-  { name: "Linear", color: "#5E6AD2", Icon: SiLinear },
-  { name: "Jira", color: "#0052CC", Icon: SiJira },
-  { name: "Confluence", color: "#172B4D", Icon: SiConfluence },
+  { name: "Slack", Icon: SiSlack },
+  { name: "GitHub", Icon: SiGithub },
+  { name: "Notion", Icon: SiNotion },
+  { name: "Google Drive", Icon: SiGoogledrive },
+  { name: "Linear", Icon: SiLinear },
+  { name: "Jira", Icon: SiJira },
+  { name: "Confluence", Icon: SiConfluence },
 ];
 
 /**
@@ -43,13 +41,11 @@ export function ConnectSources({ variant = "strip" }: { variant?: "strip" | "min
         {SOURCES.map((s) => (
           <button
             key={s.name}
-            title={`${s.name}${s.live ? " · live" : " · coming soon"}`}
+            title={`${s.name} · coming soon`}
             onClick={() => setNote(true)}
-            className={`relative flex ${tile} items-center justify-center rounded-lg ring-1 ring-white/10 transition hover:ring-violet/70`}
-            style={{ background: s.color }}
+            className={`relative flex ${tile} items-center justify-center rounded-lg bg-panel-2 ring-1 ring-white/10 grayscale transition hover:text-slate-300 hover:ring-violet/40`}
           >
-            <s.Icon className={`${ic} text-white`} />
-            {s.live && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-bg" />}
+            <s.Icon className={`${ic} text-slate-500`} />
           </button>
         ))}
         <button
@@ -59,6 +55,9 @@ export function ConnectSources({ variant = "strip" }: { variant?: "strip" | "min
         >
           <Plus className={mini ? "h-3.5 w-3.5" : "h-4 w-4"} />
         </button>
+      </div>
+      <div className={`mt-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-600 ${mini ? "" : "text-center"}`}>
+        Connectors · coming soon
       </div>
       {note && (
         <div className={`text-xs leading-relaxed text-muted ${mini ? "mt-2" : "max-w-md text-center"}`}>
