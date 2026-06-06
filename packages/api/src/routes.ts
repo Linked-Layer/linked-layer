@@ -1,9 +1,11 @@
 import {
   type SourceType,
+  AuthError,
   NotFoundError,
   apiKeyCreateSchema,
   askRequestSchema,
   connectorConfigSchema,
+  githubLinkSchema,
   recallRequestSchema,
   searchRequestSchema,
   walletChallengeSchema,
@@ -22,11 +24,14 @@ import {
 import {
   ask,
   createWalletChallenge,
+  getUserConnectorStatus,
   issueApiKey,
+  linkGithub,
   listConnectors,
   listWorkspaceKeys,
   recall,
   revokeWorkspaceKey,
+  unlinkUserConnector,
   verifyWalletAndIssueSession,
   writeMemory,
 } from "@recall/engine";
@@ -206,6 +211,40 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     const body = (req.body ?? {}) as { workspace?: string };
     const jobId = await enqueueIngest({ workspaceSlug: resolveWorkspace(req, body.workspace), sourceType: source });
     return { enqueued: true, jobId };
+  });
+
+  // ---- per-user GitHub connection (scoped to the verified wallet) ----
+  // Authed by the Sign-In-with-Solana session; the wallet IS the data boundary.
+  const walletPre = { preHandler: [authenticate, resolveSession] };
+  const requireWallet = (req: import("fastify").FastifyRequest): string => {
+    if (!req.walletHolder) throw new AuthError("Connect and verify a Solana wallet first");
+    return req.walletHolder;
+  };
+
+  app.post("/v1/connectors/github/link", walletPre, async (req) => {
+    const holder = requireWallet(req);
+    const raw = (req.body ?? {}) as Record<string, unknown>;
+    const body = githubLinkSchema.parse(raw);
+    const workspace = resolveWorkspace(req, raw.workspace as string | undefined);
+    const { repos } = await linkGithub({ holder, workspaceSlug: workspace, token: body.token, repos: body.repos });
+    const jobId = await enqueueIngest({ workspaceSlug: workspace, sourceType: "github", holder });
+    return { connected: true, repos, enqueued: true, jobId };
+  });
+
+  app.get("/v1/connectors/github", walletPre, async (req) => {
+    return getUserConnectorStatus(requireWallet(req), "github");
+  });
+
+  app.post("/v1/connectors/github/sync", walletPre, async (req) => {
+    const holder = requireWallet(req);
+    const raw = (req.body ?? {}) as Record<string, unknown>;
+    const jobId = await enqueueIngest({ workspaceSlug: resolveWorkspace(req, raw.workspace as string | undefined), sourceType: "github", holder });
+    return { enqueued: true, jobId };
+  });
+
+  app.delete("/v1/connectors/github", walletPre, async (req) => {
+    await unlinkUserConnector(requireWallet(req), "github");
+    return { connected: false };
   });
 
   // ---- key management (admin-token guarded) ----

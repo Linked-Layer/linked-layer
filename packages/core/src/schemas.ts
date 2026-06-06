@@ -57,6 +57,12 @@ export const connectorConfigSchema = z.object({
   config: z.record(z.unknown()).default({}),
 });
 
+/** Per-user GitHub connection: a PAT + the repos to ingest (owner/repo). */
+export const githubLinkSchema = z.object({
+  token: z.string().min(10).max(255),
+  repos: z.array(z.string().regex(/^[\w.-]+\/[\w.-]+$/, "use owner/repo")).min(1).max(20),
+});
+
 export const apiKeyCreateSchema = z.object({
   workspace: z.string().min(1),
   name: z.string().min(1).default("default"),
@@ -84,3 +90,4 @@ export type SearchRequestInput = z.infer<typeof searchRequestSchema>;
 export type WriteRequestInput = z.infer<typeof writeRequestSchema>;
 export type AskRequestInput = z.infer<typeof askRequestSchema>;
 export type ConnectorConfigInput = z.infer<typeof connectorConfigSchema>;
+export type GithubLinkInput = z.infer<typeof githubLinkSchema>;

@@ -4,6 +4,7 @@ export * from "./types";
 export * from "./schemas";
 export * from "./auth";
 export * from "./solana-auth";
+export * from "./crypto";
 export { config } from "./config";
 export type { Config } from "./config";
 

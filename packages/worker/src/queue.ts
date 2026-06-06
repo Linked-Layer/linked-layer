@@ -20,6 +20,8 @@ export interface IngestJob {
   workspaceName?: string;
   sourceType: SourceType;
   config?: Record<string, unknown>;
+  /** When set, sync this user's per-user connection (their own token), not the shared one. */
+  holder?: string;
 }
 
 export interface PipelineJob {

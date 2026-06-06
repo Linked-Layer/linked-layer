@@ -119,6 +119,23 @@ export const connectors = pgTable(
   (t) => [index("connectors_ws_idx").on(t.workspaceId)],
 );
 
+export const userConnectors = pgTable(
+  "user_connectors",
+  {
+    id: text("id").primaryKey(),
+    holder: text("holder").notNull(),
+    sourceType: text("source_type").notNull(),
+    workspaceSlug: text("workspace_slug").notNull(),
+    repos: jsonb("repos").notNull().default(sql`'[]'::jsonb`),
+    tokenEnc: text("token_enc").notNull(),
+    cursor: jsonb("cursor").notNull().default(sql`'{}'::jsonb`),
+    enabled: boolean("enabled").notNull().default(true),
+    lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("user_connectors_holder_idx").on(t.holder), index("user_connectors_enabled_idx").on(t.enabled)],
+);
+
 export type WorkspaceRow = typeof workspaces.$inferSelect;
 export type ApiKeyRow = typeof apiKeys.$inferSelect;
 export type ConnectorRow = typeof connectors.$inferSelect;
@@ -128,3 +145,4 @@ export type RawIngestRow = typeof rawIngest.$inferSelect;
 export type AclRow = typeof acl.$inferSelect;
 export type DistillationRow = typeof distillations.$inferSelect;
 export type ChunkRow = typeof chunks.$inferSelect;
+export type UserConnectorRow = typeof userConnectors.$inferSelect;

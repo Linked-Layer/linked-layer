@@ -3,8 +3,8 @@ import type { DistillStatus, RawItem, SourceType } from "@recall/core";
 import { and, eq, inArray, sql as dsql } from "drizzle-orm";
 import { db } from "./client";
 import { sql } from "./client";
-import { acl, apiKeys, chunks, connectors, distillations, edges, nodes, rawIngest, workspaces } from "./schema";
-import type { ApiKeyRow, ConnectorRow, DistillationRow, NodeRow, RawIngestRow } from "./schema";
+import { acl, apiKeys, chunks, connectors, distillations, edges, nodes, rawIngest, userConnectors, workspaces } from "./schema";
+import type { ApiKeyRow, ConnectorRow, DistillationRow, NodeRow, RawIngestRow, UserConnectorRow } from "./schema";
 
 // ---- workspaces ----
 
@@ -120,6 +120,100 @@ export async function listEnabledConnectorsWithSlug(): Promise<
     WHERE c.enabled = true
   `;
   return rows.map((r) => ({ id: r.id, workspaceSlug: r.slug, sourceType: r.source_type as SourceType }));
+}
+
+// ---- per-user connectors (a user connects their own source with their own token) ----
+
+export interface UpsertUserConnectorInput {
+  holder: string;
+  sourceType: SourceType;
+  workspaceSlug: string;
+  repos: string[];
+  tokenEnc: string;
+}
+
+/** Create/replace a user's connection. Resets the cursor so the new config re-pulls fully. */
+export async function upsertUserConnector(input: UpsertUserConnectorInput): Promise<UserConnectorRow> {
+  const rows = await db
+    .insert(userConnectors)
+    .values({
+      id: newId("uc"),
+      holder: input.holder,
+      sourceType: input.sourceType,
+      workspaceSlug: input.workspaceSlug,
+      repos: input.repos,
+      tokenEnc: input.tokenEnc,
+      enabled: true,
+    })
+    .onConflictDoUpdate({
+      target: [userConnectors.holder, userConnectors.sourceType],
+      set: {
+        workspaceSlug: input.workspaceSlug,
+        repos: input.repos,
+        tokenEnc: input.tokenEnc,
+        enabled: true,
+        cursor: dsql`'{}'::jsonb`,
+      },
+    })
+    .returning();
+  return rows[0]!;
+}
+
+export async function getUserConnector(holder: string, sourceType: SourceType): Promise<UserConnectorRow | null> {
+  const row = await db
+    .select()
+    .from(userConnectors)
+    .where(and(eq(userConnectors.holder, holder), eq(userConnectors.sourceType, sourceType)))
+    .limit(1);
+  return row[0] ?? null;
+}
+
+export async function updateUserConnectorCursor(id: string, cursor: Record<string, unknown>, lastSyncAt: Date): Promise<void> {
+  await db.update(userConnectors).set({ cursor, lastSyncAt }).where(eq(userConnectors.id, id));
+}
+
+export async function deleteUserConnector(holder: string, sourceType: SourceType): Promise<void> {
+  await db.delete(userConnectors).where(and(eq(userConnectors.holder, holder), eq(userConnectors.sourceType, sourceType)));
+}
+
+/** All enabled user connectors (for the scheduler's periodic re-sync). */
+export async function listEnabledUserConnectors(): Promise<
+  { id: string; holder: string; sourceType: SourceType; workspaceSlug: string }[]
+> {
+  const rows = await db
+    .select({
+      id: userConnectors.id,
+      holder: userConnectors.holder,
+      sourceType: userConnectors.sourceType,
+      workspaceSlug: userConnectors.workspaceSlug,
+    })
+    .from(userConnectors)
+    .where(eq(userConnectors.enabled, true));
+  return rows.map((r) => ({ ...r, sourceType: r.sourceType as SourceType }));
+}
+
+/**
+ * Delete all graph data a user ingested from a source (nodes/chunks/acl/distillations/raw).
+ * Matches the per-user externalId namespace `<source>:<holder>:%`, so it only ever
+ * touches that user's own private items.
+ */
+export async function purgeUserSourceData(workspaceId: string, holder: string, sourceType: SourceType): Promise<void> {
+  const pattern = `${sourceType}:${holder}:%`;
+  await sql`
+    WITH del AS (
+      DELETE FROM nodes
+      WHERE workspace_id = ${workspaceId} AND source_type = ${sourceType} AND external_id LIKE ${pattern}
+      RETURNING id
+    ),
+    c AS (DELETE FROM chunks WHERE node_id IN (SELECT id FROM del)),
+    a AS (DELETE FROM acl WHERE node_id IN (SELECT id FROM del)),
+    d AS (DELETE FROM distillations WHERE node_id IN (SELECT id FROM del))
+    SELECT 1
+  `;
+  await sql`
+    DELETE FROM raw_ingest
+    WHERE workspace_id = ${workspaceId} AND source_type = ${sourceType} AND external_id LIKE ${pattern}
+  `;
 }
 
 // ---- raw ingest ----

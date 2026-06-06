@@ -34,8 +34,14 @@ export class ConnectorConfigError extends Error {
   }
 }
 
-/** Read a bearer token from the env var named in config (default `fallbackEnv`). */
+/**
+ * Resolve a bearer token. A literal `config.token` (used by per-user connectors,
+ * passed in decrypted at sync time) wins; otherwise read the env var named in
+ * `config.tokenEnv` (default `fallbackEnv`) — for server-configured connectors.
+ */
 export function resolveToken(config: Record<string, unknown>, fallbackEnv: string): string {
+  const literal = config.token;
+  if (typeof literal === "string" && literal.length > 0) return literal;
   const envName = (config.tokenEnv as string | undefined) ?? fallbackEnv;
   const token = process.env[envName];
   if (!token) {

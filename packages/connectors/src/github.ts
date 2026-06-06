@@ -38,6 +38,10 @@ export class GithubConnector implements Connector {
     const apiBase = (ctx.config.apiBase as string | undefined) ?? "https://api.github.com";
     const maxComments = (ctx.config.maxComments as number | undefined) ?? 20;
     const since = ctx.cursor?.since as string | undefined;
+    // Per-user connectors scope items to the owner's wallet and namespace the
+    // externalId so two users connecting the same repo get isolated nodes.
+    const audience = (ctx.config.audience as string[] | undefined) ?? ["*"];
+    const idPrefix = (ctx.config.externalIdPrefix as string | undefined) ?? "";
 
     const headers = {
       authorization: `Bearer ${token}`,
@@ -72,7 +76,7 @@ export class GithubConnector implements Connector {
         }
 
         items.push({
-          externalId: `github:${repo}#${issue.number}`,
+          externalId: `github:${idPrefix}${repo}#${issue.number}`,
           sourceType: "github",
           kind: "thread",
           title: `[${repo}#${issue.number}] ${issue.title}`,
@@ -86,8 +90,8 @@ export class GithubConnector implements Connector {
             type: isPr ? "pull_request" : "issue",
             updated_at: issue.updated_at,
           },
-          // Team-visible. Granular GitHub repo/team permissions are a future refinement.
-          audience: ["*"],
+          // ACL: per-user connectors pass [wallet] (private); server connectors use ["*"].
+          audience,
         });
 
         if (issue.updated_at > latest) latest = issue.updated_at;

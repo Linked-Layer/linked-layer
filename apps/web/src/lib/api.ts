@@ -19,6 +19,48 @@ export interface Attachment {
   content: string;
 }
 
+/** Authenticated JSON fetch against the backend, carrying the wallet session. */
+async function authedFetch(path: string, init: RequestInit): Promise<unknown> {
+  const session = getSessionToken();
+  const res = await fetch(`${config.apiUrl}${path}`, {
+    ...init,
+    headers: {
+      "content-type": "application/json",
+      ...(config.demoKey ? { authorization: `Bearer ${config.demoKey}` } : {}),
+      ...(session ? { "x-linked-session": session } : {}),
+      ...(init.headers ?? {}),
+    },
+  });
+  if (!res.ok) {
+    let message = `Request failed (${res.status})`;
+    try {
+      const err = (await res.json()) as { error?: { message?: string } };
+      if (err?.error?.message) message = err.error.message;
+    } catch {
+      /* non-JSON */
+    }
+    throw new Error(message);
+  }
+  return res.status === 204 ? null : res.json();
+}
+
+export interface GithubStatus {
+  connected: boolean;
+  repos: string[];
+  lastSyncAt: string | null;
+}
+
+/** Connect the user's own GitHub: store a PAT + repos (server validates + ingests). */
+export const githubStatus = () => authedFetch("/v1/connectors/github", { method: "GET" }) as Promise<GithubStatus>;
+export const githubLink = (token: string, repos: string[]) =>
+  authedFetch("/v1/connectors/github/link", {
+    method: "POST",
+    body: JSON.stringify({ token, repos, workspace: config.demoWorkspace }),
+  }) as Promise<{ connected: boolean; repos: string[] }>;
+export const githubSync = () =>
+  authedFetch("/v1/connectors/github/sync", { method: "POST", body: JSON.stringify({ workspace: config.demoWorkspace }) });
+export const githubUnlink = () => authedFetch("/v1/connectors/github", { method: "DELETE" });
+
 export interface AskCallbacks {
   onSources?: (sources: RecallSource[]) => void;
   onToken?: (token: string) => void;

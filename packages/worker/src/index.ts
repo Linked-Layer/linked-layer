@@ -1,6 +1,6 @@
 import { config } from "@recall/core";
-import { listEnabledConnectorsWithSlug } from "@recall/db";
-import { processWorkspace, syncConnector } from "@recall/engine";
+import { listEnabledConnectorsWithSlug, listEnabledUserConnectors } from "@recall/db";
+import { processWorkspace, syncConnector, syncUserConnector } from "@recall/engine";
 import { Worker } from "bullmq";
 import {
   INGEST_QUEUE,
@@ -22,6 +22,13 @@ export function startWorkers(): { close: () => Promise<void> } {
   const ingestWorker = new Worker<IngestJob>(
     INGEST_QUEUE,
     async (job) => {
+      // Per-user connection (their own token), scoped to their wallet.
+      if (job.data.holder) {
+        const res = await syncUserConnector(job.data.holder, job.data.sourceType);
+        console.log(`[ingest:user] ${job.data.sourceType}@${job.data.holder.slice(0, 6)}…: pulled ${res.pulled}`);
+        if (res.workspaceSlug) await enqueuePipeline({ workspaceSlug: res.workspaceSlug });
+        return res;
+      }
       const res = await syncConnector(job.data);
       console.log(`[ingest] ${job.data.sourceType}→${job.data.workspaceSlug}: pulled ${res.pulled}`);
       await enqueuePipeline({ workspaceSlug: job.data.workspaceSlug });
@@ -51,8 +58,13 @@ export function startWorkers(): { close: () => Promise<void> } {
       for (const c of connectors) {
         await enqueueIngest({ workspaceSlug: c.workspaceSlug, sourceType: c.sourceType });
       }
-      console.log(`[schedule] enqueued sync for ${connectors.length} connector(s)`);
-      return { dispatched: connectors.length };
+      const userConnectors = await listEnabledUserConnectors();
+      for (const u of userConnectors) {
+        await enqueueIngest({ workspaceSlug: u.workspaceSlug, sourceType: u.sourceType, holder: u.holder });
+      }
+      const total = connectors.length + userConnectors.length;
+      console.log(`[schedule] enqueued sync for ${total} connector(s) (${userConnectors.length} user)`);
+      return { dispatched: total };
     },
     { connection, concurrency: 1 },
   );

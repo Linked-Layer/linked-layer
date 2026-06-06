@@ -11,6 +11,7 @@ export type {
   AclRow,
   DistillationRow,
   ChunkRow,
+  UserConnectorRow,
 } from "./schema";
 export * from "./repositories";
 export { migrate } from "./migrate";
