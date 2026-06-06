@@ -120,6 +120,16 @@ export const config = {
     priceUsdc: Number.parseFloat(process.env.X402_PRICE_USDC ?? "0.01"),
     payTo: str("X402_PAY_TO", "stub-treasury-address"),
   },
+
+  github: {
+    /** OAuth App credentials (registered on github.com → Developer settings → OAuth Apps). */
+    oauthClientId: process.env.GITHUB_OAUTH_CLIENT_ID ?? "",
+    oauthClientSecret: process.env.GITHUB_OAUTH_CLIENT_SECRET ?? "",
+    /** OAuth scope. `repo` = public+private; `public_repo` = public only. */
+    oauthScope: str("GITHUB_OAUTH_SCOPE", "repo read:user"),
+    /** Public origin used to build the OAuth redirect_uri (must match the OAuth App). */
+    appBaseUrl: str("PUBLIC_BASE_URL", "https://linkedlayer.xyz"),
+  },
 } as const;
 
 export type Config = typeof config;

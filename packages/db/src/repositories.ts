@@ -159,6 +159,40 @@ export async function upsertUserConnector(input: UpsertUserConnectorInput): Prom
   return rows[0]!;
 }
 
+/** Store/refresh only the token (OAuth path): keeps existing repos + cursor. */
+export async function upsertUserConnectorToken(input: {
+  holder: string;
+  sourceType: SourceType;
+  workspaceSlug: string;
+  tokenEnc: string;
+}): Promise<UserConnectorRow> {
+  const rows = await db
+    .insert(userConnectors)
+    .values({
+      id: newId("uc"),
+      holder: input.holder,
+      sourceType: input.sourceType,
+      workspaceSlug: input.workspaceSlug,
+      repos: [],
+      tokenEnc: input.tokenEnc,
+      enabled: true,
+    })
+    .onConflictDoUpdate({
+      target: [userConnectors.holder, userConnectors.sourceType],
+      set: { tokenEnc: input.tokenEnc, workspaceSlug: input.workspaceSlug, enabled: true },
+    })
+    .returning();
+  return rows[0]!;
+}
+
+/** Set which repos to index (OAuth path) and reset the cursor so they re-pull fully. */
+export async function setUserConnectorRepos(holder: string, sourceType: SourceType, repos: string[]): Promise<void> {
+  await db
+    .update(userConnectors)
+    .set({ repos, cursor: dsql`'{}'::jsonb` })
+    .where(and(eq(userConnectors.holder, holder), eq(userConnectors.sourceType, sourceType)));
+}
+
 export async function getUserConnector(holder: string, sourceType: SourceType): Promise<UserConnectorRow | null> {
   const row = await db
     .select()

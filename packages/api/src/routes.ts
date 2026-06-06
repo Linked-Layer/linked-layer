@@ -2,6 +2,7 @@ import {
   type SourceType,
   AuthError,
   NotFoundError,
+  config,
   apiKeyCreateSchema,
   askRequestSchema,
   connectorConfigSchema,
@@ -23,14 +24,18 @@ import {
 } from "@recall/db";
 import {
   ask,
+  buildGithubAuthorizeUrl,
   createWalletChallenge,
   getUserConnectorStatus,
+  handleGithubCallback,
   issueApiKey,
   linkGithub,
   listConnectors,
+  listGithubRepos,
   listWorkspaceKeys,
   recall,
   revokeWorkspaceKey,
+  setGithubRepos,
   unlinkUserConnector,
   verifyWalletAndIssueSession,
   writeMemory,
@@ -245,6 +250,40 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   app.delete("/v1/connectors/github", walletPre, async (req) => {
     await unlinkUserConnector(requireWallet(req), "github");
     return { connected: false };
+  });
+
+  // One-click OAuth: start returns the GitHub authorize URL (front-end redirects to it).
+  app.get("/v1/connectors/github/oauth/start", walletPre, async (req) => {
+    const holder = requireWallet(req);
+    const q = req.query as { workspace?: string };
+    return { url: buildGithubAuthorizeUrl(holder, resolveWorkspace(req, q.workspace)) };
+  });
+
+  // OAuth callback (browser redirect; identity comes from the signed state, not a header).
+  app.get("/v1/connectors/github/oauth/callback", async (req, reply) => {
+    const q = req.query as { code?: string; state?: string };
+    const base = config.github.appBaseUrl;
+    if (!q.code || !q.state) return reply.redirect(`${base}/app?github=error`);
+    try {
+      await handleGithubCallback(q.code, q.state);
+      return reply.redirect(`${base}/app?github=connected`);
+    } catch {
+      return reply.redirect(`${base}/app?github=error`);
+    }
+  });
+
+  // Post-OAuth repo picker.
+  app.get("/v1/connectors/github/repos", walletPre, async (req) => {
+    return { repos: await listGithubRepos(requireWallet(req)) };
+  });
+
+  app.post("/v1/connectors/github/repos", walletPre, async (req) => {
+    const holder = requireWallet(req);
+    const raw = (req.body ?? {}) as { repos?: unknown; workspace?: string };
+    const repos = Array.isArray(raw.repos) ? (raw.repos.filter((r) => typeof r === "string") as string[]) : [];
+    const result = await setGithubRepos(holder, repos);
+    const jobId = await enqueueIngest({ workspaceSlug: resolveWorkspace(req, raw.workspace), sourceType: "github", holder });
+    return { ...result, enqueued: true, jobId };
   });
 
   // ---- key management (admin-token guarded) ----

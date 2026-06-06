@@ -45,13 +45,30 @@ async function authedFetch(path: string, init: RequestInit): Promise<unknown> {
 }
 
 export interface GithubStatus {
+  authorized: boolean;
   connected: boolean;
   repos: string[];
   lastSyncAt: string | null;
+  oauthEnabled: boolean;
+}
+export interface GithubRepoOption {
+  fullName: string;
+  private: boolean;
 }
 
-/** Connect the user's own GitHub: store a PAT + repos (server validates + ingests). */
+/** Connect the user's own GitHub: one-click OAuth, or PAT fallback. */
 export const githubStatus = () => authedFetch("/v1/connectors/github", { method: "GET" }) as Promise<GithubStatus>;
+export const githubOauthStart = () =>
+  authedFetch(`/v1/connectors/github/oauth/start?workspace=${encodeURIComponent(config.demoWorkspace)}`, { method: "GET" }) as Promise<{
+    url: string;
+  }>;
+export const githubListRepos = () =>
+  (authedFetch("/v1/connectors/github/repos", { method: "GET" }) as Promise<{ repos: GithubRepoOption[] }>).then((r) => r.repos);
+export const githubSetRepos = (repos: string[]) =>
+  authedFetch("/v1/connectors/github/repos", {
+    method: "POST",
+    body: JSON.stringify({ repos, workspace: config.demoWorkspace }),
+  }) as Promise<{ repos: string[] }>;
 export const githubLink = (token: string, repos: string[]) =>
   authedFetch("/v1/connectors/github/link", {
     method: "POST",

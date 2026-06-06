@@ -50,6 +50,20 @@ export function ConnectSources({ variant = "strip" }: { variant?: "strip" | "min
     };
   }, [verified, ghOpen]);
 
+  // Returning from the GitHub OAuth redirect → open the modal (to the repo picker).
+  // Only the full strip handles it (and clears the param) so we don't open twice.
+  useEffect(() => {
+    if (mini) return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("github") === "connected") {
+      setGhOpen(true);
+      p.delete("github");
+      const qs = p.toString();
+      window.history.replaceState({}, "", window.location.pathname + (qs ? `?${qs}` : ""));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className={mini ? "" : "flex flex-col items-center gap-3"}>
       {!mini && (

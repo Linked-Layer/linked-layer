@@ -12,5 +12,14 @@ export { listConnectors } from "./connectors";
 export type { ConnectorSummary } from "./connectors";
 export { createWalletChallenge, verifyWalletAndIssueSession, resolveWalletSession } from "./wallet";
 export type { WalletChallenge, WalletSession, VerifyWalletParams } from "./wallet";
-export { linkGithub, syncUserConnector, getUserConnectorStatus, unlinkUserConnector } from "./userConnectors";
-export type { LinkGithubParams, UserSyncResult, UserConnectorStatus } from "./userConnectors";
+export {
+  linkGithub,
+  syncUserConnector,
+  getUserConnectorStatus,
+  unlinkUserConnector,
+  buildGithubAuthorizeUrl,
+  handleGithubCallback,
+  listGithubRepos,
+  setGithubRepos,
+} from "./userConnectors";
+export type { LinkGithubParams, UserSyncResult, UserConnectorStatus, GithubRepoOption } from "./userConnectors";
