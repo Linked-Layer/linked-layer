@@ -250,6 +250,46 @@ export async function purgeUserSourceData(workspaceId: string, holder: string, s
   `;
 }
 
+export interface HolderNode {
+  title: string;
+  body: string | null;
+  metadata: Record<string, unknown>;
+  kind: string;
+}
+
+/** Nodes a specific holder ingested from a source (their OWN private items, not public). */
+export async function listHolderNodes(
+  workspaceSlug: string,
+  holder: string,
+  sourceType: SourceType,
+  limit: number,
+): Promise<HolderNode[]> {
+  const rows = await sql<Array<{ title: string; body: string | null; metadata: Record<string, unknown>; kind: string }>>`
+    WITH ws AS (SELECT id FROM workspaces WHERE slug = ${workspaceSlug})
+    SELECT n.title, n.body, n.metadata, n.kind
+    FROM nodes n
+    WHERE n.workspace_id = (SELECT id FROM ws)
+      AND n.source_type = ${sourceType}
+      AND EXISTS (SELECT 1 FROM acl a WHERE a.node_id = n.id AND a.subject = ${holder})
+    ORDER BY n.updated_at DESC
+    LIMIT ${limit}
+  `;
+  return rows.map((r) => ({ title: r.title, body: r.body, metadata: r.metadata ?? {}, kind: r.kind }));
+}
+
+/** How many nodes a holder has indexed from a source (diagnostic for the connect UI). */
+export async function countHolderSourceNodes(workspaceSlug: string, holder: string, sourceType: SourceType): Promise<number> {
+  const rows = await sql<Array<{ n: number }>>`
+    WITH ws AS (SELECT id FROM workspaces WHERE slug = ${workspaceSlug})
+    SELECT count(*)::int AS n
+    FROM nodes n
+    WHERE n.workspace_id = (SELECT id FROM ws)
+      AND n.source_type = ${sourceType}
+      AND EXISTS (SELECT 1 FROM acl a WHERE a.node_id = n.id AND a.subject = ${holder})
+  `;
+  return rows[0]?.n ?? 0;
+}
+
 // ---- raw ingest ----
 
 export async function insertRawItems(workspaceId: string, items: RawItem[]): Promise<number> {

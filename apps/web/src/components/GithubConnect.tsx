@@ -234,7 +234,14 @@ export function GithubConnect({ onClose, onChange }: { onClose: () => void; onCh
                 </li>
               ))}
             </ul>
-            {status!.lastSyncAt && <p className="text-xs text-muted">Last indexed: {new Date(status!.lastSyncAt).toLocaleString()}</p>}
+            <p className="text-xs text-muted">
+              {status!.indexed > 0
+                ? `${status!.indexed} items indexed`
+                : status!.lastSyncAt
+                  ? "Indexing… (0 so far — check back in a minute)"
+                  : "Queued for indexing…"}
+              {status!.lastSyncAt ? ` · last sync ${new Date(status!.lastSyncAt).toLocaleString()}` : ""}
+            </p>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" onClick={openPicker} disabled={busy} className="flex-1">
                 <Github className="h-4 w-4" /> Edit repos

@@ -49,6 +49,7 @@ export interface GithubStatus {
   connected: boolean;
   repos: string[];
   lastSyncAt: string | null;
+  indexed: number;
   oauthEnabled: boolean;
 }
 export interface GithubRepoOption {

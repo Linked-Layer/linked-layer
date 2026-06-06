@@ -2,6 +2,7 @@ import { RecallError, config, decryptSecret, encryptSecret, signSession, verifyS
 import type { SourceType } from "@recall/core";
 import { getConnector } from "@recall/connectors";
 import {
+  countHolderSourceNodes,
   deleteUserConnector,
   ensureWorkspace,
   getUserConnector,
@@ -109,6 +110,8 @@ export interface UserConnectorStatus {
   connected: boolean;
   repos: string[];
   lastSyncAt: string | null;
+  /** Number of items indexed so far (diagnostic: confirms the sync actually pulled data). */
+  indexed: number;
   /** Whether one-click GitHub OAuth is configured on the server. */
   oauthEnabled: boolean;
 }
@@ -116,13 +119,15 @@ export interface UserConnectorStatus {
 export async function getUserConnectorStatus(holder: string, sourceType: SourceType): Promise<UserConnectorStatus> {
   const oauthEnabled = !!config.github.oauthClientId;
   const row = await getUserConnector(holder, sourceType);
-  if (!row) return { authorized: false, connected: false, repos: [], lastSyncAt: null, oauthEnabled };
+  if (!row) return { authorized: false, connected: false, repos: [], lastSyncAt: null, indexed: 0, oauthEnabled };
   const repos = (row.repos as string[]) ?? [];
+  const indexed = await countHolderSourceNodes(row.workspaceSlug, holder, sourceType).catch(() => 0);
   return {
     authorized: true,
     connected: row.enabled && repos.length > 0,
     repos,
     lastSyncAt: row.lastSyncAt ? row.lastSyncAt.toISOString() : null,
+    indexed,
     oauthEnabled,
   };
 }
