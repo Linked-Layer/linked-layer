@@ -122,11 +122,12 @@ export const config = {
   },
 
   github: {
+    // NOTE: env names use GH_ (not GITHUB_) — Forgejo reserves the GITHUB_ prefix for secrets.
     /** OAuth App credentials (registered on github.com → Developer settings → OAuth Apps). */
-    oauthClientId: process.env.GITHUB_OAUTH_CLIENT_ID ?? "",
-    oauthClientSecret: process.env.GITHUB_OAUTH_CLIENT_SECRET ?? "",
+    oauthClientId: process.env.GH_OAUTH_CLIENT_ID ?? "",
+    oauthClientSecret: process.env.GH_OAUTH_CLIENT_SECRET ?? "",
     /** OAuth scope. `repo` = public+private; `public_repo` = public only. */
-    oauthScope: str("GITHUB_OAUTH_SCOPE", "repo read:user"),
+    oauthScope: str("GH_OAUTH_SCOPE", "repo read:user"),
     /** Public origin used to build the OAuth redirect_uri (must match the OAuth App). */
     appBaseUrl: str("PUBLIC_BASE_URL", "https://linkedlayer.xyz"),
   },
