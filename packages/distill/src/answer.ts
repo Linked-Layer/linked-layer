@@ -56,7 +56,8 @@ export async function* answerQuestionStream(c: AnswerContext): AsyncGenerator<st
   }
   try {
     let emitted = false;
-    for await (const token of llm.stream({ system: ASK_SYSTEM, user: userPrompt(c), history: c.history, maxTokens: 1024 })) {
+    // Generous cap so longer answers (e.g. a repo review) don't get cut off mid-sentence.
+    for await (const token of llm.stream({ system: ASK_SYSTEM, user: userPrompt(c), history: c.history, maxTokens: 4096 })) {
       emitted = true;
       yield token;
     }
