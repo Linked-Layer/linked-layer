@@ -106,10 +106,18 @@ export function NotionConnect({ onClose, onChange }: { onClose: () => void; onCh
                 {status.lastSyncAt ? ` · last sync ${new Date(status.lastSyncAt).toLocaleString()}` : ""}
               </p>
             ) : status.lastSyncAt ? (
-              <p className="text-xs leading-relaxed text-amber-400/90">
-                No pages found yet. In Notion, open a page → top-right <span className="font-mono">•••</span> → <b>Connections</b> →
-                add <b>Linked Layer</b> (do this for each top-level page/database you want), then hit <b>Sync</b>.
-              </p>
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[11px] leading-relaxed text-amber-200/90">
+                <div className="mb-1.5 font-medium text-amber-300">No pages found yet — give Linked Layer access in Notion:</div>
+                <ol className="list-decimal space-y-1 pl-4">
+                  <li>Open a page in Notion.</li>
+                  <li>
+                    Top-right <span className="font-mono">•••</span> → <b>Connections</b> → add <b>Linked Layer</b>.
+                  </li>
+                  <li>
+                    Come back here and hit <b>Sync</b>.
+                  </li>
+                </ol>
+              </div>
             ) : (
               <p className="text-xs text-muted">Queued for indexing…</p>
             )}
@@ -125,9 +133,25 @@ export function NotionConnect({ onClose, onChange }: { onClose: () => void; onCh
         ) : (
           <div className="space-y-3">
             <p className="text-xs leading-relaxed text-muted">
-              Authorize Linked Layer to read the Notion pages you choose. The chat then answers from them — and only you can see
-              your data.
+              Connect your Notion so the chat can answer from your pages. Only you can see your data.
             </p>
+            <div className="rounded-lg border border-border bg-panel-2 p-3 text-[11px] leading-relaxed text-slate-300">
+              <div className="mb-1.5 font-medium text-white">How it works — 2 steps</div>
+              <ol className="list-decimal space-y-1.5 pl-4 text-muted">
+                <li>
+                  Click <span className="text-slate-200">Connect with Notion</span> below and approve access.
+                </li>
+                <li>
+                  In Notion, give Linked Layer the pages you want: open a page → <span className="font-mono text-slate-200">•••</span>{" "}
+                  (top-right) → <span className="text-slate-200">Connections</span> → add{" "}
+                  <span className="text-slate-200">Linked Layer</span>. Sub-pages are included automatically.
+                </li>
+              </ol>
+              <p className="mt-2 text-muted">
+                Connecting alone shows nothing — Notion only shares pages you explicitly add. After adding them, come back
+                and hit <span className="text-slate-200">Sync</span>.
+              </p>
+            </div>
             <Button onClick={connect} disabled={busy} className="w-full">
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <SiNotion className="h-4 w-4" />} Connect with Notion
             </Button>
