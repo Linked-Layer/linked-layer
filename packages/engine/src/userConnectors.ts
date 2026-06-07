@@ -117,7 +117,7 @@ export interface UserConnectorStatus {
 }
 
 export async function getUserConnectorStatus(holder: string, sourceType: SourceType): Promise<UserConnectorStatus> {
-  const oauthEnabled = !!config.github.oauthClientId;
+  const oauthEnabled = sourceType === "notion" ? !!config.notion.oauthClientId : !!config.github.oauthClientId;
   const row = await getUserConnector(holder, sourceType);
   if (!row) return { authorized: false, connected: false, repos: [], lastSyncAt: null, indexed: 0, oauthEnabled };
   const repos = (row.repos as string[]) ?? [];
@@ -138,11 +138,15 @@ interface OauthState {
   h: string; // holder
   w: string; // workspace slug
   exp: number;
-  k: "ghoauth";
+  k: "ghoauth" | "ntoauth";
+}
+
+function redirectUri(source: string): string {
+  return `${config.github.appBaseUrl}/v1/connectors/${source}/oauth/callback`;
 }
 
 function ghRedirectUri(): string {
-  return `${config.github.appBaseUrl}/v1/connectors/github/oauth/callback`;
+  return redirectUri("github");
 }
 
 /** Build the GitHub authorize URL with a signed state carrying the wallet identity. */
@@ -214,6 +218,48 @@ export async function setGithubRepos(holder: string, repos: string[]): Promise<{
   if (bad.length) throw new RecallError(`Bad repo names: ${bad.join(", ")}`, { status: 400, code: "github_bad_repos" });
   await setUserConnectorRepos(holder, "github", repos);
   return { repos };
+}
+
+// ---- Notion one-click OAuth ----
+// Notion shows its OWN page picker during authorize, so there's no post-OAuth repo
+// step — the token can read exactly the pages the user shared, and we index those.
+
+export function buildNotionAuthorizeUrl(holder: string, workspaceSlug: string): string {
+  const clientId = config.notion.oauthClientId;
+  if (!clientId) throw new RecallError("Notion OAuth is not configured on the server", { status: 503, code: "notion_oauth_unconfigured" });
+  const state = signSession({ h: holder, w: workspaceSlug, exp: Date.now() + 10 * 60_000, k: "ntoauth" } satisfies OauthState, secret());
+  const u = new URL("https://api.notion.com/v1/oauth/authorize");
+  u.searchParams.set("client_id", clientId);
+  u.searchParams.set("response_type", "code");
+  u.searchParams.set("owner", "user");
+  u.searchParams.set("redirect_uri", redirectUri("notion"));
+  u.searchParams.set("state", state);
+  return u.toString();
+}
+
+export async function handleNotionCallback(code: string, state: string): Promise<{ holder: string; workspaceSlug: string }> {
+  const payload = verifySession<OauthState>(state, secret());
+  if (!payload || payload.k !== "ntoauth" || !payload.h || typeof payload.exp !== "number" || Date.now() > payload.exp) {
+    throw new RecallError("Invalid or expired OAuth state", { status: 400, code: "notion_oauth_state" });
+  }
+  const basic = Buffer.from(`${config.notion.oauthClientId}:${config.notion.oauthClientSecret}`).toString("base64");
+  const res = await fetch("https://api.notion.com/v1/oauth/token", {
+    method: "POST",
+    headers: { authorization: `Basic ${basic}`, "content-type": "application/json", "notion-version": "2022-06-28" },
+    body: JSON.stringify({ grant_type: "authorization_code", code, redirect_uri: redirectUri("notion") }),
+  }).catch(() => null);
+  const data = (res && res.ok ? await res.json().catch(() => null) : null) as { access_token?: string } | null;
+  if (!data?.access_token) throw new RecallError("Notion authorization failed", { status: 400, code: "notion_oauth_failed" });
+
+  await upsertUserConnectorToken({
+    holder: payload.h,
+    sourceType: "notion",
+    workspaceSlug: payload.w,
+    tokenEnc: encryptSecret(data.access_token, secret()),
+  });
+  // Notion has no separate repo step — mark connected so it syncs the shared pages.
+  await setUserConnectorRepos(payload.h, "notion", ["Shared Notion pages"]);
+  return { holder: payload.h, workspaceSlug: payload.w };
 }
 
 /** Disconnect a source: delete the connection AND purge the user's ingested data. */

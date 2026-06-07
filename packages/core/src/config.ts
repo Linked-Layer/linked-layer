@@ -131,6 +131,12 @@ export const config = {
     /** Public origin used to build the OAuth redirect_uri (must match the OAuth App). */
     appBaseUrl: str("PUBLIC_BASE_URL", "https://linkedlayer.xyz"),
   },
+
+  notion: {
+    /** Notion public integration OAuth credentials (notion.so/my-integrations). */
+    oauthClientId: process.env.NOTION_OAUTH_CLIENT_ID ?? "",
+    oauthClientSecret: process.env.NOTION_OAUTH_CLIENT_SECRET ?? "",
+  },
 } as const;
 
 export type Config = typeof config;

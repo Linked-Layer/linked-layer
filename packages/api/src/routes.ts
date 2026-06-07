@@ -25,9 +25,11 @@ import {
 import {
   ask,
   buildGithubAuthorizeUrl,
+  buildNotionAuthorizeUrl,
   createWalletChallenge,
   getUserConnectorStatus,
   handleGithubCallback,
+  handleNotionCallback,
   issueApiKey,
   linkGithub,
   listConnectors,
@@ -284,6 +286,42 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     const result = await setGithubRepos(holder, repos);
     const jobId = await enqueueIngest({ workspaceSlug: resolveWorkspace(req, raw.workspace), sourceType: "github", holder });
     return { ...result, enqueued: true, jobId };
+  });
+
+  // ---- per-user Notion connection (one-click OAuth; Notion shows its own page picker) ----
+  app.get("/v1/connectors/notion", walletPre, async (req) => {
+    return getUserConnectorStatus(requireWallet(req), "notion");
+  });
+
+  app.get("/v1/connectors/notion/oauth/start", walletPre, async (req) => {
+    const holder = requireWallet(req);
+    const q = req.query as { workspace?: string };
+    return { url: buildNotionAuthorizeUrl(holder, resolveWorkspace(req, q.workspace)) };
+  });
+
+  app.get("/v1/connectors/notion/oauth/callback", async (req, reply) => {
+    const q = req.query as { code?: string; state?: string };
+    const base = config.github.appBaseUrl;
+    if (!q.code || !q.state) return reply.redirect(`${base}/app?notion=error`);
+    try {
+      const { holder, workspaceSlug } = await handleNotionCallback(q.code, q.state);
+      await enqueueIngest({ workspaceSlug, sourceType: "notion", holder }); // Notion: sync the shared pages now
+      return reply.redirect(`${base}/app?notion=connected`);
+    } catch {
+      return reply.redirect(`${base}/app?notion=error`);
+    }
+  });
+
+  app.post("/v1/connectors/notion/sync", walletPre, async (req) => {
+    const holder = requireWallet(req);
+    const raw = (req.body ?? {}) as { workspace?: string };
+    const jobId = await enqueueIngest({ workspaceSlug: resolveWorkspace(req, raw.workspace), sourceType: "notion", holder });
+    return { enqueued: true, jobId };
+  });
+
+  app.delete("/v1/connectors/notion", walletPre, async (req) => {
+    await unlinkUserConnector(requireWallet(req), "notion");
+    return { connected: false };
   });
 
   // ---- key management (admin-token guarded) ----

@@ -79,6 +79,16 @@ export const githubSync = () =>
   authedFetch("/v1/connectors/github/sync", { method: "POST", body: JSON.stringify({ workspace: config.demoWorkspace }) });
 export const githubUnlink = () => authedFetch("/v1/connectors/github", { method: "DELETE" });
 
+/** Notion (one-click OAuth; Notion shows its own page picker during authorize). */
+export const notionStatus = () => authedFetch("/v1/connectors/notion", { method: "GET" }) as Promise<GithubStatus>;
+export const notionOauthStart = () =>
+  authedFetch(`/v1/connectors/notion/oauth/start?workspace=${encodeURIComponent(config.demoWorkspace)}`, { method: "GET" }) as Promise<{
+    url: string;
+  }>;
+export const notionSync = () =>
+  authedFetch("/v1/connectors/notion/sync", { method: "POST", body: JSON.stringify({ workspace: config.demoWorkspace }) });
+export const notionUnlink = () => authedFetch("/v1/connectors/notion", { method: "DELETE" });
+
 export interface AskCallbacks {
   onSources?: (sources: RecallSource[]) => void;
   onToken?: (token: string) => void;

@@ -21,5 +21,7 @@ export {
   handleGithubCallback,
   listGithubRepos,
   setGithubRepos,
+  buildNotionAuthorizeUrl,
+  handleNotionCallback,
 } from "./userConnectors";
 export type { LinkGithubParams, UserSyncResult, UserConnectorStatus, GithubRepoOption } from "./userConnectors";
