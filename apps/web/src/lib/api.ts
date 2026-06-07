@@ -25,7 +25,9 @@ async function authedFetch(path: string, init: RequestInit): Promise<unknown> {
   const res = await fetch(`${config.apiUrl}${path}`, {
     ...init,
     headers: {
-      "content-type": "application/json",
+      // Only declare a JSON content-type when we actually send a body — otherwise
+      // Fastify rejects bodyless GET/DELETE with "Body cannot be empty".
+      ...(init.body != null ? { "content-type": "application/json" } : {}),
       ...(config.demoKey ? { authorization: `Bearer ${config.demoKey}` } : {}),
       ...(session ? { "x-linked-session": session } : {}),
       ...(init.headers ?? {}),
