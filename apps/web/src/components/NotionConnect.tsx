@@ -100,14 +100,19 @@ export function NotionConnect({ onClose, onChange }: { onClose: () => void; onCh
             <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
               <Check className="h-4 w-4 shrink-0" /> Connected
             </div>
-            <p className="text-xs text-muted">
-              {status.indexed > 0
-                ? `${status.indexed} pages indexed`
-                : status.lastSyncAt
-                  ? "Indexing… (0 so far — check back in a minute)"
-                  : "Queued for indexing…"}
-              {status.lastSyncAt ? ` · last sync ${new Date(status.lastSyncAt).toLocaleString()}` : ""}
-            </p>
+            {status.indexed > 0 ? (
+              <p className="text-xs text-muted">
+                {status.indexed} pages indexed
+                {status.lastSyncAt ? ` · last sync ${new Date(status.lastSyncAt).toLocaleString()}` : ""}
+              </p>
+            ) : status.lastSyncAt ? (
+              <p className="text-xs leading-relaxed text-amber-400/90">
+                No pages found yet. In Notion, open a page → top-right <span className="font-mono">•••</span> → <b>Connections</b> →
+                add <b>Linked Layer</b> (do this for each top-level page/database you want), then hit <b>Sync</b>.
+              </p>
+            ) : (
+              <p className="text-xs text-muted">Queued for indexing…</p>
+            )}
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={sync} disabled={busy} className="flex-1">
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Sync
