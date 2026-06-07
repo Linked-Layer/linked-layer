@@ -3,30 +3,42 @@ import { answerQuestionStream } from "@recall/distill";
 import { listHolderNodes } from "@recall/db";
 import { recall } from "./recall";
 
-const MAX_CONNECTED_CHARS = 14_000;
+const MAX_CONNECTED_CHARS = 18_000;
+const CONNECTED_SOURCES = ["github", "notion"] as const;
 
 /**
- * Build a block from the holder's connected sources (e.g. GitHub): an overview of
- * indexed files + READMEs, plus the retrieval hits from those sources. This is what
- * lets broad questions ("review my repo") work even when semantic retrieval is weak.
+ * Build a block from the holder's connected sources (GitHub repos, Notion pages, …):
+ * an overview of indexed items + their content, plus the retrieval hits from those
+ * sources. This is what lets broad questions ("review my repo", "rate my Notion")
+ * work — the user's OWN data is always present, even when semantic retrieval is weak.
  */
 async function buildConnectedContext(workspace: string, holder: string | undefined, retrieval: RecallResult): Promise<string> {
   const parts: string[] = [];
   if (holder) {
-    try {
-      const nodes = await listHolderNodes(workspace, holder, "github", 300);
-      const files = nodes.filter((n) => (n.metadata?.type as string | undefined) === "file");
-      if (files.length) {
-        const fileList = files
-          .map((n) => `- ${(n.metadata?.path as string | undefined) ?? n.title}`)
-          .slice(0, 200)
-          .join("\n");
-        parts.push(`Indexed files in your connected GitHub repos:\n${fileList}`);
-        const readmes = files.filter((n) => /readme/i.test(n.title)).slice(0, 3);
-        for (const r of readmes) parts.push(`### ${r.title}\n${(r.body ?? "").slice(0, 4000)}`);
+    for (const src of CONNECTED_SOURCES) {
+      const nodes = await listHolderNodes(workspace, holder, src, 300).catch(() => []);
+      if (!nodes.length) continue;
+      const label = src === "github" ? "GitHub repos" : src === "notion" ? "Notion pages" : src;
+      const titles = nodes
+        .slice(0, 150)
+        .map((n) => `- ${n.title}`)
+        .join("\n");
+      parts.push(`Your connected ${label} — indexed items (${nodes.length}):\n${titles}`);
+      // Include the content of items (READMEs/pages first), within a per-source budget.
+      const prioritized =
+        src === "github"
+          ? [...nodes].sort((a, b) => (/readme/i.test(b.title) ? 1 : 0) - (/readme/i.test(a.title) ? 1 : 0))
+          : nodes;
+      let used = 0;
+      const budget = Math.floor(MAX_CONNECTED_CHARS * 0.55);
+      for (const n of prioritized) {
+        if (used >= budget) break;
+        const body = (n.body ?? "").trim();
+        if (!body) continue;
+        const chunk = `### ${n.title}\n${body.slice(0, 3000)}`;
+        parts.push(chunk);
+        used += chunk.length;
       }
-    } catch {
-      /* overview is best-effort */
     }
   }
   // Retrieval hits that came from the user's own connected sources (not the Linked Layer demo).

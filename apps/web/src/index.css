@@ -47,6 +47,20 @@
     color: #b3a6ea;
   }
 
+  /* Subtle bob for the live connector tiles. */
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-3px);
+    }
+  }
+  .animate-bob {
+    animation: bob 2.4s ease-in-out infinite;
+  }
+
   .panel {
     @apply rounded-2xl border border-border bg-panel/70 backdrop-blur;
   }

@@ -19,9 +19,10 @@ interface Source {
 }
 
 const SOURCES: Source[] = [
-  { name: "Slack", Icon: SiSlack },
+  // Live connectors first + rendered larger; the rest are smaller "coming soon" tiles.
   { name: "GitHub", Icon: SiGithub, connector: "github", bg: "#1F2328" },
   { name: "Notion", Icon: SiNotion, connector: "notion", bg: "#0B0B0B" },
+  { name: "Slack", Icon: SiSlack },
   { name: "Google Drive", Icon: SiGoogledrive },
   { name: "Linear", Icon: SiLinear },
   { name: "Jira", Icon: SiJira },
@@ -38,8 +39,11 @@ export function ConnectSources({ variant = "strip" }: { variant?: "strip" | "min
   const [open, setOpen] = useState<Connector | null>(null);
   const [connected, setConnected] = useState<Record<Connector, boolean>>({ github: false, notion: false });
   const mini = variant === "mini";
-  const tile = mini ? "h-7 w-7" : "h-10 w-10";
-  const ic = mini ? "h-3.5 w-3.5" : "h-5 w-5";
+  // Live connectors are bigger/brighter; "coming soon" tiles are smaller + greyed.
+  const liveTile = mini ? "h-9 w-9" : "h-12 w-12";
+  const soonTile = mini ? "h-6 w-6" : "h-9 w-9";
+  const liveIc = mini ? "h-5 w-5" : "h-6 w-6";
+  const soonIc = mini ? "h-3 w-3" : "h-4 w-4";
 
   const setConn = (c: Connector, v: boolean) => setConnected((prev) => ({ ...prev, [c]: v }));
 
@@ -76,19 +80,19 @@ export function ConnectSources({ variant = "strip" }: { variant?: "strip" | "min
       {!mini && (
         <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">Connect your tools → one context</div>
       )}
-      <div className={`flex flex-wrap ${mini ? "gap-1.5" : "justify-center gap-2.5"}`}>
-        {SOURCES.map((s) =>
+      <div className={`flex flex-wrap items-center ${mini ? "gap-1.5" : "justify-center gap-2.5"}`}>
+        {SOURCES.map((s, i) =>
           s.connector ? (
             <button
               key={s.name}
               title={connected[s.connector] ? `${s.name} · connected` : `Connect ${s.name}`}
               onClick={() => setOpen(s.connector!)}
-              style={{ background: s.bg }}
-              className={`relative flex ${tile} items-center justify-center rounded-lg ring-1 ring-white/10 transition hover:ring-violet/70`}
+              style={{ background: s.bg, animationDelay: `${i * 0.4}s` }}
+              className={`animate-bob motion-reduce:animate-none relative flex ${liveTile} items-center justify-center rounded-xl shadow-glow ring-1 ring-white/15 transition hover:ring-violet/70`}
             >
-              <s.Icon className={`${ic} text-white`} />
+              <s.Icon className={`${liveIc} text-white`} />
               {connected[s.connector] && (
-                <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-bg" />
+                <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-bg" />
               )}
             </button>
           ) : (
@@ -96,18 +100,18 @@ export function ConnectSources({ variant = "strip" }: { variant?: "strip" | "min
               key={s.name}
               title={`${s.name} · coming soon`}
               onClick={() => setNote(true)}
-              className={`relative flex ${tile} items-center justify-center rounded-lg bg-panel-2 ring-1 ring-white/10 grayscale transition hover:text-slate-300 hover:ring-violet/40`}
+              className={`relative flex ${soonTile} items-center justify-center rounded-lg bg-panel-2 opacity-60 ring-1 ring-white/10 grayscale transition hover:opacity-100 hover:ring-violet/40`}
             >
-              <s.Icon className={`${ic} text-slate-500`} />
+              <s.Icon className={`${soonIc} text-slate-500`} />
             </button>
           ),
         )}
         <button
           onClick={() => setNote(true)}
           title="Add a source"
-          className={`flex ${tile} items-center justify-center rounded-lg border border-dashed border-border text-muted transition hover:border-violet/60 hover:text-white`}
+          className={`flex ${soonTile} items-center justify-center rounded-lg border border-dashed border-border text-muted transition hover:border-violet/60 hover:text-white`}
         >
-          <Plus className={mini ? "h-3.5 w-3.5" : "h-4 w-4"} />
+          <Plus className={mini ? "h-3 w-3" : "h-4 w-4"} />
         </button>
       </div>
       <div className={`mt-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-600 ${mini ? "" : "text-center"}`}>
