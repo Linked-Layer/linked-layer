@@ -105,21 +105,26 @@ export function NotionConnect({ onClose, onChange }: { onClose: () => void; onCh
                 {status.indexed} pages indexed
                 {status.lastSyncAt ? ` · last sync ${new Date(status.lastSyncAt).toLocaleString()}` : ""}
               </p>
-            ) : status.lastSyncAt ? (
+            ) : (
               <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[11px] leading-relaxed text-amber-200/90">
-                <div className="mb-1.5 font-medium text-amber-300">No pages found yet — give Linked Layer access in Notion:</div>
+                <div className="mb-1.5 font-medium text-amber-300">
+                  Almost there — one more step. Notion shares nothing until you give Linked Layer your pages:
+                </div>
                 <ol className="list-decimal space-y-1 pl-4">
-                  <li>Open a page in Notion.</li>
+                  <li>In Notion, open a page (or a top-level page that holds the rest).</li>
                   <li>
-                    Top-right <span className="font-mono">•••</span> → <b>Connections</b> → add <b>Linked Layer</b>.
+                    Top-right <span className="font-mono">•••</span> → <b>Connections</b> → add <b>Linked Layer</b>. Sub-pages
+                    are included automatically.
                   </li>
                   <li>
                     Come back here and hit <b>Sync</b>.
                   </li>
                 </ol>
+                <p className="mt-2 text-amber-200/70">
+                  Tip: you can also re-run <b>Connect with Notion</b> and tick pages on Notion's “Select pages” screen.
+                  {status.lastSyncAt ? ` · last checked ${new Date(status.lastSyncAt).toLocaleString()}` : ""}
+                </p>
               </div>
-            ) : (
-              <p className="text-xs text-muted">Queued for indexing…</p>
             )}
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={sync} disabled={busy} className="flex-1">
