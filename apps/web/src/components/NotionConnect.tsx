@@ -101,10 +101,20 @@ export function NotionConnect({ onClose, onChange }: { onClose: () => void; onCh
               <Check className="h-4 w-4 shrink-0" /> Connected
             </div>
             {status.indexed > 0 ? (
-              <p className="text-xs text-muted">
-                {status.indexed} pages indexed
-                {status.lastSyncAt ? ` · last sync ${new Date(status.lastSyncAt).toLocaleString()}` : ""}
-              </p>
+              <div className="rounded-lg border border-border bg-panel-2 p-3 text-[11px] leading-relaxed text-slate-300">
+                <div className="font-medium text-white">
+                  {status.indexed} page{status.indexed === 1 ? "" : "s"} indexed — you're set.
+                </div>
+                <p className="mt-1 text-muted">
+                  Just ask about your Notion in the chat (e.g. “summarize my notes”, “what did I write about X”).
+                </p>
+                <p className="mt-1.5 text-muted">
+                  Want more pages in? Share them in Notion (page → <span className="font-mono">•••</span> →{" "}
+                  <b className="text-slate-200">Connections</b> → <b className="text-slate-200">Linked Layer</b>), then hit{" "}
+                  <b className="text-slate-200">Sync</b>.
+                  {status.lastSyncAt ? ` · last sync ${new Date(status.lastSyncAt).toLocaleString()}` : ""}
+                </p>
+              </div>
             ) : (
               <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[11px] leading-relaxed text-amber-200/90">
                 <div className="mb-1.5 font-medium text-amber-300">
