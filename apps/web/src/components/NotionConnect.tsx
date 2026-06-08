@@ -127,13 +127,26 @@ export function NotionConnect({ onClose, onChange }: { onClose: () => void; onCh
               </div>
             )}
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={sync} disabled={busy} className="flex-1">
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Sync
+              <Button
+                variant={status.indexed > 0 ? "outline" : "primary"}
+                size="sm"
+                onClick={sync}
+                disabled={busy}
+                className="flex-1"
+              >
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                {status.indexed > 0 ? "Sync" : "Sync now"}
               </Button>
-              <Button variant="outline" size="sm" onClick={disconnect} disabled={busy} className="flex-1 hover:border-rose-500/60 hover:text-rose-400">
+              <Button variant="outline" size="sm" onClick={disconnect} disabled={busy} className="hover:border-rose-500/60 hover:text-rose-400">
                 <Trash2 className="h-4 w-4" /> Disconnect
               </Button>
             </div>
+            {status.indexed === 0 && (
+              <p className="text-[11px] leading-relaxed text-muted">
+                Already shared your pages in Notion? Press <b className="text-slate-200">Sync now</b> to index them — it
+                takes ~a minute.
+              </p>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
