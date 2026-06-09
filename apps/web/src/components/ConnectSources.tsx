@@ -88,7 +88,7 @@ export function ConnectSources({ variant = "strip" }: { variant?: "strip" | "min
               title={connected[s.connector] ? `${s.name} · connected` : `Connect ${s.name}`}
               onClick={() => setOpen(s.connector!)}
               style={{ background: s.bg, animationDelay: `${i * 0.4}s` }}
-              className={`animate-bob motion-reduce:animate-none relative flex ${liveTile} items-center justify-center rounded-xl shadow-glow ring-1 ring-white/15 transition hover:ring-violet/70`}
+              className={`animate-bob motion-reduce:animate-none relative flex ${liveTile} items-center justify-center rounded-xl shadow-card ring-1 ring-black/5 transition hover:ring-accent/60`}
             >
               <s.Icon className={`${liveIc} text-white`} />
               {connected[s.connector] && (
@@ -100,27 +100,27 @@ export function ConnectSources({ variant = "strip" }: { variant?: "strip" | "min
               key={s.name}
               title={`${s.name} · coming soon`}
               onClick={() => setNote(true)}
-              className={`relative flex ${soonTile} items-center justify-center rounded-lg bg-panel-2 opacity-60 ring-1 ring-white/10 grayscale transition hover:opacity-100 hover:ring-violet/40`}
+              className={`relative flex ${soonTile} items-center justify-center rounded-lg border border-border bg-panel-2 opacity-70 grayscale transition hover:opacity-100 hover:border-accent/40`}
             >
-              <s.Icon className={`${soonIc} text-slate-500`} />
+              <s.Icon className={`${soonIc} text-slate-400`} />
             </button>
           ),
         )}
         <button
           onClick={() => setNote(true)}
           title="Add a source"
-          className={`flex ${soonTile} items-center justify-center rounded-lg border border-dashed border-border text-muted transition hover:border-violet/60 hover:text-white`}
+          className={`flex ${soonTile} items-center justify-center rounded-lg border border-dashed border-border text-muted transition hover:border-accent/60 hover:text-ink`}
         >
           <Plus className={mini ? "h-3 w-3" : "h-4 w-4"} />
         </button>
       </div>
-      <div className={`mt-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-600 ${mini ? "" : "text-center"}`}>
+      <div className={`mt-1.5 font-mono text-[10px] uppercase tracking-wider text-muted ${mini ? "" : "text-center"}`}>
         GitHub & Notion live · more connectors soon
       </div>
       {note && (
         <div className={`text-xs leading-relaxed text-muted ${mini ? "mt-2" : "max-w-md text-center"}`}>
           That connector is coming soon. GitHub & Notion work now — click one to connect. You can also paste a link in the
-          chat and Linked Layer will pull it in as context.
+          chat and Linked will pull it in as context.
         </div>
       )}
       {open === "github" && <GithubConnect onClose={() => setOpen(null)} onChange={(v) => setConn("github", v)} />}

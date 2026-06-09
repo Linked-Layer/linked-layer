@@ -4,10 +4,14 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { WhitepaperSection } from "@/pages/Whitepaper";
 import { NavContext, type View } from "@/providers/Nav";
+import { ApiShowcase } from "@/sections/ApiShowcase";
 import { CTA } from "@/sections/CTA";
+import { Faq } from "@/sections/Faq";
+import { Features } from "@/sections/Features";
 import { HowItWorks } from "@/sections/HowItWorks";
 import { Integrations } from "@/sections/Integrations";
 import { Journey } from "@/sections/Journey";
+import { UseCases } from "@/sections/UseCases";
 
 /**
  * Single-document app: each nav item is a SEPARATE view, swapped in place via
@@ -55,8 +59,12 @@ function HomeView() {
   return (
     <>
       <Journey />
+      <Features />
       <HowItWorks />
+      <ApiShowcase />
+      <UseCases />
       <Integrations />
+      <Faq />
       <CTA />
     </>
   );

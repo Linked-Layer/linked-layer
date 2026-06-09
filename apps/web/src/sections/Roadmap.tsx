@@ -53,7 +53,7 @@ export function Roadmap() {
                 <span
                   className={
                     p.status === "done"
-                      ? "text-emerald-400"
+                      ? "text-emerald-600"
                       : p.status === "active"
                         ? "text-cyan"
                         : "text-muted"
@@ -62,7 +62,7 @@ export function Roadmap() {
                   {ICON[p.status]}
                 </span>
               </div>
-              <h3 className="text-lg font-semibold text-white">{p.title}</h3>
+              <h3 className="text-lg font-semibold text-ink">{p.title}</h3>
               <ul className="mt-3 space-y-2 text-sm text-muted">
                 {p.items.map((it) => (
                   <li key={it} className="flex gap-2">

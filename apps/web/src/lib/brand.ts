@@ -1,7 +1,7 @@
 /** Brand constants for the frontend (English only). Single source of naming. */
 export const BRAND = {
   name: "Linked Layer",
-  short: "Linked Layer",
+  short: "Linked",
   ticker: "LINKED",
   symbol: "$LINKED",
   tagline: "Shared memory for teams & agents",

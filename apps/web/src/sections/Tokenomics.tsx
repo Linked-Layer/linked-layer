@@ -6,11 +6,11 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { BRAND } from "@/lib/brand";
 
 const ALLOCATION = [
-  { name: "Liquidity", value: 50, color: "#7c5cff" },
-  { name: "Community & airdrops", value: 20, color: "#22d3ee" },
-  { name: "Treasury (buyback & burn)", value: 15, color: "#a78bfa" },
-  { name: "Team (vested)", value: 10, color: "#38bdf8" },
-  { name: "Ecosystem", value: 5, color: "#818cf8" },
+  { name: "Liquidity", value: 50, color: "#4f46e5" },
+  { name: "Community & airdrops", value: 20, color: "#818cf8" },
+  { name: "Treasury (buyback & burn)", value: 15, color: "#8b5cf6" },
+  { name: "Team (vested)", value: 10, color: "#6366f1" },
+  { name: "Ecosystem", value: 5, color: "#a5b4fc" },
 ];
 
 const UTILITY = [
@@ -58,7 +58,7 @@ export function Tokenomics() {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ background: "#0d0d16", border: "1px solid #1d1d2b", borderRadius: 12, color: "#fff" }}
+                    contentStyle={{ background: "#ffffff", border: "1px solid #e4e4e7", borderRadius: 12, color: "#18181b" }}
                     formatter={(v: number, n: string) => [`${v}%`, n]}
                   />
                 </PieChart>
@@ -68,8 +68,8 @@ export function Tokenomics() {
               {ALLOCATION.map((a) => (
                 <div key={a.name} className="flex items-center gap-2 text-sm">
                   <span className="h-3 w-3 rounded-full" style={{ background: a.color }} />
-                  <span className="text-slate-300">{a.name}</span>
-                  <span className="ml-auto font-medium text-white">{a.value}%</span>
+                  <span className="text-muted">{a.name}</span>
+                  <span className="ml-auto font-medium text-ink">{a.value}%</span>
                 </div>
               ))}
             </div>

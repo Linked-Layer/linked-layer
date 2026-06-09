@@ -25,9 +25,9 @@ export function Integrations() {
         {SOURCES.map((s) => (
           <div
             key={s.name}
-            className="flex items-center gap-2.5 rounded-xl border border-border bg-panel/50 px-6 py-4 text-muted transition-colors hover:border-violet/50 hover:text-white"
+            className="flex items-center gap-2.5 rounded-xl border border-border bg-panel px-6 py-4 text-muted shadow-sm transition-colors hover:border-stone-300 hover:text-ink"
           >
-            <span className="text-violet">{s.icon}</span>
+            <span className="text-accent">{s.icon}</span>
             <span className="whitespace-nowrap text-sm font-medium">{s.name}</span>
           </div>
         ))}

@@ -5,7 +5,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "panel p-6 transition-all duration-300 hover:-translate-y-1 hover:border-violet/40 hover:shadow-glow",
+        "panel p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-glow",
         className,
       )}
       {...props}
@@ -14,7 +14,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 }
 
 export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 className={cn("text-lg font-semibold text-white", className)} {...props} />;
+  return <h3 className={cn("text-lg font-semibold text-ink", className)} {...props} />;
 }
 
 export function CardDescription({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {

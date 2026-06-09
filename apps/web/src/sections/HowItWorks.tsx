@@ -74,7 +74,7 @@ function Step({ index, icon, title, desc }: { index: number; icon: ReactNode; ti
         <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-violet/15 text-violet">
           {icon}
         </div>
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <h3 className="text-lg font-semibold text-ink">{title}</h3>
         <p className="mt-2 text-sm leading-relaxed text-muted">{desc}</p>
       </div>
     </motion.div>

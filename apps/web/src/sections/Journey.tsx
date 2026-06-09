@@ -1,173 +1,153 @@
-import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
-import { useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CharReveal } from "@/components/AnimatedText";
-import { MorphField } from "@/components/MorphField";
 import { Button } from "@/components/ui/button";
 
-interface Chapter {
-  kicker: string;
-  word: string;
-  sentence?: string;
-  hint?: string;
-  cta?: boolean;
-}
+const SOURCES = ["Slack", "GitHub", "Docs", "Linear", "Calls"];
+const ROTATING = ["agents", "copilots", "new hires", "on-call"];
 
-const CHAPTERS: Chapter[] = [
-  { kicker: "Context, on demand", word: "Linked Layer", hint: "Scroll to start" },
-  {
-    kicker: "For people & agents",
-    word: "Total recall",
-    sentence: "One call — recall(query, scope) — returns your team's memory, permission-aware.",
-  },
-  {
-    kicker: "Every decision, the why, the status",
-    word: "Ask the company",
-    sentence: "Chat over everything your team knows — answered with cited sources.",
-  },
-  {
-    kicker: "Slack · GitHub · docs · calls",
-    word: "One Layer, Every Tool",
-    sentence: "Your tools, distilled into a single permission-aware context graph.",
-    cta: true,
-  },
-];
+const ease = [0.22, 1, 0.36, 1] as const;
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.6, delay, ease },
+});
 
+/**
+ * Landing hero — a single, centered statement of the product over a soft animated
+ * aurora background, with a rotating audience word.
+ */
 export function Journey() {
   const routerNavigate = useNavigate();
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const n = CHAPTERS.length;
-  const [active, setActive] = useState(0);
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    setActive(Math.max(0, Math.min(n - 1, Math.floor(v * n - 0.0001))));
-  });
-  // "Scroll to start" lives only at the very top — it fades out the moment you
-  // scroll and the "M" begins to form.
-  const hintOpacity = useTransform(scrollYProgress, [0, 0.06], [1, 0]);
-
-  const c = CHAPTERS[active]!;
-  // First chapter is a bare full-screen title (no glass) — so "Scroll to start"
-  // reads as the intro. From the 2nd chapter on, the text settles into the glass card.
-  const isIntro = active === 0;
-  // Only the intro (chapter 0, the "M") is bare full-screen text; from "Total recall"
-  // onward the text settles into the glass + edge-light card.
-  const glassOn = !isIntro;
 
   return (
-    <section ref={ref} style={{ height: `${n * 100}vh` }} className="relative">
-      <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
-        {/* Particles assemble into themed shapes per chapter */}
-        <MorphField progress={scrollYProgress} chapters={n} className="absolute inset-0 h-full w-full" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-bg/20 via-transparent to-bg/70" />
+    <section className="relative flex min-h-svh items-center overflow-hidden">
+      <Aurora />
+      <GridFade />
+      <div className="mx-auto flex w-full max-w-3xl flex-col items-center px-4 py-28 text-center sm:px-6">
+        <motion.h1
+          {...fadeUp(0.06)}
+          className="text-balance text-5xl font-semibold leading-[1.05] tracking-tight text-ink md:text-6xl"
+        >
+          Shared memory for your team and its <RotatingWord />
+        </motion.h1>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={active}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, y: -50, filter: "blur(12px)" }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center"
-          >
-            <motion.div
-              initial={glassOn ? { scale: 1.06, opacity: 0 } : false}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className={
-                glassOn
-                  ? "relative w-full max-w-4xl rounded-[2.25rem] border border-white/[0.06] bg-white/[0.008] px-8 py-14 shadow-2xl ring-1 ring-white/[0.03] backdrop-blur-md md:px-20 md:py-24"
-                  : "relative w-full max-w-5xl"
-              }
-            >
-              {glassOn && (
-                <>
-                  {/* accent edge-light — top (violet) & bottom (cyan), brightest at center, glowing the text */}
-                  <span aria-hidden className="pointer-events-none absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-violet to-transparent" />
-                  <span aria-hidden className="pointer-events-none absolute inset-x-24 top-0 h-16 rounded-[100%] bg-violet/30 blur-2xl" />
-                  <span aria-hidden className="pointer-events-none absolute inset-x-12 bottom-0 h-px bg-gradient-to-r from-transparent via-cyan to-transparent" />
-                  <span aria-hidden className="pointer-events-none absolute inset-x-24 bottom-0 h-16 rounded-[100%] bg-cyan/25 blur-2xl" />
-                </>
-              )}
-            <motion.div
-              className="relative mb-2 text-sm font-medium tracking-[0.25em] text-violet"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              {c.kicker.toUpperCase()}
-            </motion.div>
+        <motion.p {...fadeUp(0.12)} className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
+          Linked Layer turns Slack, GitHub, docs, trackers and calls into one permission-aware context
+          graph. One call —{" "}
+          <code className="rounded-md bg-panel-2 px-1.5 py-0.5 font-mono text-[0.95em] text-accent">
+            recall(query, scope)
+          </code>{" "}
+          — returns your team's memory. Ask the company in plain language; let agents pull cited context
+          through MCP.
+        </motion.p>
 
-            <h2
-              className={`font-serif font-light leading-[0.95] text-white ${
-                isIntro ? "text-[16vw] md:text-[8.5rem]" : "text-[13vw] md:text-[6rem]"
-              }`}
-            >
-              <CharReveal text={c.word} />
-            </h2>
+        <motion.div {...fadeUp(0.18)} className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Button size="lg" onClick={() => routerNavigate("/app")}>
+            Open the chat <ArrowRight className="h-4 w-4" />
+          </Button>
+          <a href="#how">
+            <Button variant="outline" size="lg">
+              How it works
+            </Button>
+          </a>
+        </motion.div>
 
-            {c.sentence && (
-              <motion.p
-                className="mx-auto mt-8 max-w-xl text-base leading-relaxed text-slate-300 md:text-lg"
-                initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ duration: 0.6, delay: 0.35 }}
-              >
-                {c.sentence}
-              </motion.p>
-            )}
+        {/* trust strip */}
+        <motion.div {...fadeUp(0.24)} className="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-3">
+          {[
+            ["Permission-aware", "never leaks what a user can't see"],
+            ["Cited answers", "every claim traces to its source"],
+            ["Agent-native", "MCP + REST, one primitive"],
+          ].map(([t, d]) => (
+            <div key={t} className="flex items-start gap-2 text-left">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+              <div>
+                <div className="text-sm font-medium text-ink">{t}</div>
+                <div className="text-xs text-muted">{d}</div>
+              </div>
+            </div>
+          ))}
+        </motion.div>
 
-            {c.hint && (
-              <motion.p className="mt-10 text-sm tracking-[0.2em] text-muted" style={{ opacity: hintOpacity }}>
-                <motion.span
-                  className="inline-block"
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2.4, repeat: Infinity }}
-                >
-                  {c.hint}
-                </motion.span>
-              </motion.p>
-            )}
-
-            {c.cta && (
-              <motion.div
-                className="pointer-events-auto mt-10 flex flex-wrap items-center justify-center gap-3"
-                initial={{ opacity: 0, y: 12 }}
+        <motion.div {...fadeUp(0.3)} className="mt-10">
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">Connects the tools you use</div>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {SOURCES.map((s, i) => (
+              <motion.span
+                key={s}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.5 }}
+                transition={{ duration: 0.4, delay: 0.34 + i * 0.05, ease }}
+                className="rounded-lg border border-border bg-panel px-3 py-1.5 text-sm font-medium text-ink/80 shadow-sm transition-colors hover:border-accent/40"
               >
-                <Button size="lg" onClick={() => routerNavigate("/app")}>
-                  Open chat <ArrowUpRight className="h-4 w-4" />
-                </Button>
-                <a href="#how">
-                  <Button variant="outline" size="lg">
-                    How it works
-                  </Button>
-                </a>
-              </motion.div>
-            )}
-            </motion.div>
-          </motion.div>
-        </AnimatePresence>
-
-        <DiamondRail active={active} total={n} />
+                {s}
+              </motion.span>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </section>
   );
 }
 
-function DiamondRail({ active, total }: { active: number; total: number }) {
+/** Slowly drifting, blurred orange blobs behind the hero. Subtle, performant (no canvas). */
+function Aurora() {
+  const reduce = useReducedMotion();
+  const drift = (a: { x: number[]; y: number[]; scale: number[] }, duration: number) =>
+    reduce ? undefined : { animate: a, transition: { duration, repeat: Infinity, ease: "easeInOut" as const } };
   return (
-    <div className="absolute left-5 top-1/2 hidden -translate-y-1/2 flex-col gap-4 md:flex">
-      {Array.from({ length: total }).map((_, i) => (
-        <div
-          key={i}
-          className={`h-2.5 w-2.5 rotate-45 border transition-all duration-300 ${
-            i === active ? "scale-125 border-violet bg-violet shadow-glow" : "border-muted/50 bg-transparent"
-          }`}
-        />
-      ))}
+    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+      <motion.div
+        className="absolute -left-32 -top-32 h-[36rem] w-[36rem] rounded-full bg-accent/15 blur-3xl"
+        {...drift({ x: [0, 40, 0], y: [0, 30, 0], scale: [1, 1.1, 1] }, 18)}
+      />
+      <motion.div
+        className="absolute right-[-10rem] top-10 h-[30rem] w-[30rem] rounded-full bg-accent-2/10 blur-3xl"
+        {...drift({ x: [0, -50, 0], y: [0, 40, 0], scale: [1, 1.15, 1] }, 22)}
+      />
     </div>
+  );
+}
+
+/** Faint fading dot-grid under the hero for depth. */
+function GridFade() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 -z-10 opacity-[0.5] [mask-image:radial-gradient(70%_55%_at_50%_0%,#000,transparent)]"
+      style={{
+        backgroundImage: "radial-gradient(rgb(var(--ink) / 0.06) 1px, transparent 1px)",
+        backgroundSize: "22px 22px",
+      }}
+    />
+  );
+}
+
+/** Cycles the audience word in the headline with a soft rise/fall. */
+function RotatingWord() {
+  const reduce = useReducedMotion();
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (reduce) return;
+    const t = setInterval(() => setI((n) => (n + 1) % ROTATING.length), 2200);
+    return () => clearInterval(t);
+  }, [reduce]);
+  return (
+    <span className="relative inline-grid">
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span
+          key={ROTATING[i]}
+          initial={{ y: "0.6em", opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: "-0.6em", opacity: 0 }}
+          transition={{ duration: 0.4, ease }}
+          className="text-accent [grid-area:1/1]"
+        >
+          {ROTATING[i]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
   );
 }

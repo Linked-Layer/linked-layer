@@ -45,7 +45,12 @@ describe("GithubConnector", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const c = new GithubConnector();
-    const res = await c.pull({ workspace: "acme", config: { repos: ["acme/app"], tokenEnv: "GH_TOKEN" } });
+    // includeCode:false keeps this focused on the issues/comments path; the
+    // code-ingestion path (and its tree cursor) is covered separately below.
+    const res = await c.pull({
+      workspace: "acme",
+      config: { repos: ["acme/app"], tokenEnv: "GH_TOKEN", includeCode: false },
+    });
 
     expect(res.items).toHaveLength(1);
     const item = res.items[0]!;
@@ -53,7 +58,70 @@ describe("GithubConnector", () => {
     expect(item.title).toContain("acme/app#7");
     expect(item.body).toContain("use postgres");
     expect(item.audience).toEqual(["*"]);
-    expect(res.cursor).toEqual({ since: "2026-05-10T00:00:00Z" });
+    expect(res.cursor).toEqual({ since: "2026-05-10T00:00:00Z", trees: {} });
+  });
+
+  it("ingests repo files and advances the tree cursor", async () => {
+    process.env.GH_TOKEN = "x";
+    const fetchMock = vi.fn((url: string) => {
+      if (url.includes("/issues")) return Promise.resolve(jsonResponse([]));
+      if (url.endsWith("/repos/acme/app")) {
+        return Promise.resolve(jsonResponse({ default_branch: "main" }));
+      }
+      if (url.includes("/git/trees/")) {
+        return Promise.resolve(
+          jsonResponse({
+            sha: "treesha123",
+            tree: [
+              { path: "README.md", type: "blob", sha: "blob1", size: 42 },
+              { path: "pnpm-lock.yaml", type: "blob", sha: "blob2", size: 10 }, // ignored
+            ],
+          }),
+        );
+      }
+      if (url.includes("/git/blobs/blob1")) {
+        return Promise.resolve(
+          jsonResponse({ encoding: "base64", content: Buffer.from("# Acme app").toString("base64") }),
+        );
+      }
+      return Promise.resolve(jsonResponse([]));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await new GithubConnector().pull({
+      workspace: "acme",
+      config: { repos: ["acme/app"], tokenEnv: "GH_TOKEN" },
+    });
+
+    const files = res.items.filter((i) => i.kind === "source_object");
+    expect(files).toHaveLength(1); // README ingested, lockfile filtered out
+    const readme = files[0]!;
+    expect(readme.externalId).toBe("github:acme/app:file:README.md");
+    expect(readme.body).toContain("# Acme app");
+    expect(res.cursor.trees).toEqual({ "acme/app": "treesha123" });
+  });
+
+  it("skips file fetches when the tree SHA is unchanged", async () => {
+    process.env.GH_TOKEN = "x";
+    const fetchMock = vi.fn((url: string) => {
+      if (url.includes("/issues")) return Promise.resolve(jsonResponse([]));
+      if (url.endsWith("/repos/acme/app")) return Promise.resolve(jsonResponse({ default_branch: "main" }));
+      if (url.includes("/git/trees/")) {
+        return Promise.resolve(jsonResponse({ sha: "treesha123", tree: [{ path: "README.md", type: "blob", sha: "b1", size: 1 }] }));
+      }
+      return Promise.resolve(jsonResponse([]));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await new GithubConnector().pull({
+      workspace: "acme",
+      config: { repos: ["acme/app"], tokenEnv: "GH_TOKEN" },
+      cursor: { trees: { "acme/app": "treesha123" } },
+    });
+
+    expect(res.items.filter((i) => i.kind === "source_object")).toHaveLength(0);
+    expect(fetchMock).not.toHaveBeenCalledWith(expect.stringContaining("/git/blobs/"), expect.anything());
+    expect(res.cursor.trees).toEqual({ "acme/app": "treesha123" });
   });
 
   it("throws without repos config", async () => {

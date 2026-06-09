@@ -20,7 +20,7 @@ export function WhitepaperSection() {
   return (
     <section id="whitepaper" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-24 sm:px-6">
       <div className="mb-10">
-        <h1 className="font-serif text-5xl font-light text-white">{BRAND.name}</h1>
+        <h1 className="text-5xl font-semibold tracking-tight text-ink">{BRAND.name}</h1>
         <p className="mt-3 max-w-2xl text-muted">
           {BRAND.tagline}. {BRAND.oneLiner}
         </p>
@@ -30,7 +30,7 @@ export function WhitepaperSection() {
         <aside className="hidden lg:block">
           <nav className="sticky top-24 space-y-2 text-sm">
             {SECTIONS.map((s) => (
-              <a key={s.id} href={`#${s.id}`} className="block text-muted transition-colors hover:text-white">
+              <a key={s.id} href={`#${s.id}`} className="block text-muted transition-colors hover:text-ink">
                 {s.title}
               </a>
             ))}
@@ -238,8 +238,8 @@ export function WhitepaperSection() {
 function Block({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
     <section id={id} className="scroll-mt-24">
-      <h2 className="mb-4 text-2xl font-semibold text-white">{title}</h2>
-      <div className="space-y-4 leading-relaxed text-slate-300 [&_code]:rounded [&_code]:bg-panel [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-violet [&_li]:ml-1 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6">
+      <h2 className="mb-4 text-2xl font-semibold tracking-tight text-ink">{title}</h2>
+      <div className="space-y-4 leading-relaxed text-ink/80 [&_code]:rounded [&_code]:bg-panel-2 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-accent [&_li]:ml-1 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_strong]:text-ink [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6">
         {children}
       </div>
     </section>

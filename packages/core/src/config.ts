@@ -96,7 +96,7 @@ export const config = {
     /** How long a signing challenge stays valid. */
     challengeTtlMs: int("WALLET_CHALLENGE_TTL_MS", 5 * 60_000),
     /** Domain shown in the signed message. */
-    siwsDomain: str("WALLET_SIWS_DOMAIN", "linkedlayer.io"),
+    siwsDomain: str("WALLET_SIWS_DOMAIN", "linkedlayer.xyz"),
   },
 
   gating: {

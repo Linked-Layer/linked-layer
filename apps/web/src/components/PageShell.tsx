@@ -25,8 +25,8 @@ export function PageShell({ children }: { children: ReactNode }) {
 export function PageHero({ eyebrow, title, subtitle }: { eyebrow: string; title: ReactNode; subtitle?: string }) {
   return (
     <div className="mx-auto max-w-3xl px-4 pb-2 pt-16 text-center sm:px-6">
-      <div className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-violet">{eyebrow}</div>
-      <h1 className="font-serif text-5xl font-light text-white md:text-6xl">{title}</h1>
+      <div className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-accent">{eyebrow}</div>
+      <h1 className="text-5xl font-semibold tracking-tight text-ink md:text-6xl">{title}</h1>
       {subtitle && <p className="mx-auto mt-4 max-w-xl text-muted">{subtitle}</p>}
     </div>
   );

@@ -31,7 +31,7 @@ function sampleDrawing(draw: (ctx: CanvasRenderingContext2D, w: number, h: numbe
 
 /** Themed shapes (point clouds) for the journey chapters. */
 function buildShapes(): Pt[][] {
-  // 0 — "M" letterform (Linked Layer)
+  // 0 — "M" letterform (Linked)
   const letter = sampleDrawing((ctx, w, h) => {
     ctx.fillStyle = "#fff";
     ctx.font = `bold ${h * 0.78}px Georgia, serif`;

@@ -14,7 +14,7 @@ export function CTA() {
       <Reveal variant="scale">
         <div className="panel relative overflow-hidden p-10 text-center md:p-16">
           <div className="absolute inset-0 -z-10 bg-radial-fade" />
-          <h2 className="mx-auto max-w-2xl font-serif text-4xl font-light text-white md:text-5xl">
+          <h2 className="mx-auto max-w-2xl text-4xl font-semibold tracking-tight text-ink md:text-5xl">
             Give your team and agents a <span className="gradient-text">shared memory</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-muted">

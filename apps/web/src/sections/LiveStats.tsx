@@ -41,7 +41,7 @@ export function LiveStats() {
             label="24h"
             loading={token.isLoading}
             value={t?.isPlaceholder ? "—" : pct(t?.priceChange24h)}
-            valueClass={(t?.priceChange24h ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}
+            valueClass={(t?.priceChange24h ?? 0) >= 0 ? "text-emerald-600" : "text-rose-600"}
           />
           <Stat
             icon={<LineChart className="h-4 w-4" />}
@@ -101,7 +101,7 @@ function Stat({
       {loading || !hasValue ? (
         <Skeleton className="mt-3 h-6 w-20" />
       ) : (
-        <div className={cn("mt-2 text-xl font-semibold text-white", valueClass)}>
+        <div className={cn("mt-2 text-xl font-semibold text-ink", valueClass)}>
           {count != null ? <CountUp value={count} format={(n) => group(Math.round(n))} /> : value}
         </div>
       )}

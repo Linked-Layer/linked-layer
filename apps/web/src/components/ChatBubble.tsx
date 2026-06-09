@@ -21,13 +21,13 @@ function RecallTrace() {
         <div
           key={label}
           className={`flex items-center gap-2 text-xs ${
-            i < step ? "text-muted" : i === step ? "text-slate-200" : "text-muted/40"
+            i < step ? "text-muted" : i === step ? "text-ink" : "text-muted/40"
           }`}
         >
           {i < step ? (
-            <Check className="h-3 w-3 text-violet" />
+            <Check className="h-3 w-3 text-accent" />
           ) : i === step ? (
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-violet" />
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
           ) : (
             <span className="h-1.5 w-1.5 rounded-full border border-muted/30" />
           )}
@@ -54,15 +54,15 @@ export function ChatBubble({ m }: { m: ChatMessage }) {
             {m.files.map((f, i) => (
               <span
                 key={`${f}-${i}`}
-                className="flex items-center gap-1 rounded-md border border-border bg-panel-2 px-2 py-0.5 text-xs text-slate-300"
+                className="flex items-center gap-1 rounded-md border border-border bg-panel-2 px-2 py-0.5 text-xs text-muted"
               >
-                <FileText className="h-3 w-3 text-violet" /> <span className="max-w-[180px] truncate">{f}</span>
+                <FileText className="h-3 w-3 text-accent" /> <span className="max-w-[180px] truncate">{f}</span>
               </span>
             ))}
           </div>
         )}
         {m.content && (
-          <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-violet/15 px-4 py-2.5 text-sm leading-relaxed text-white ring-1 ring-violet/20">
+          <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-accent px-4 py-2.5 text-sm leading-relaxed text-white shadow-sm">
             {m.content}
           </div>
         )}
@@ -85,36 +85,36 @@ export function ChatBubble({ m }: { m: ChatMessage }) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{empty ? "Recall" : "Linked Layer"}</div>
+        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{empty ? "Recall" : "Linked"}</div>
 
         {empty ? (
           <RecallTrace />
         ) : (
-          <div className={`text-sm leading-relaxed ${isError ? "text-rose-300" : "text-slate-100"}`}>
-            <div className="space-y-2 [&_a]:text-violet [&_a]:underline [&_code]:rounded [&_code]:bg-panel [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-violet [&_h1]:text-base [&_h1]:font-semibold [&_h2]:text-base [&_h2]:font-semibold [&_h3]:font-semibold [&_li]:ml-1 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:leading-relaxed [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-panel [&_pre]:p-3 [&_strong]:font-semibold [&_strong]:text-white [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
+          <div className={`text-sm leading-relaxed ${isError ? "text-rose-600" : "text-ink"}`}>
+            <div className="space-y-2 [&_a]:text-accent [&_a]:underline [&_code]:rounded [&_code]:bg-panel-2 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-accent [&_h1]:text-base [&_h1]:font-semibold [&_h2]:text-base [&_h2]:font-semibold [&_h3]:font-semibold [&_li]:ml-1 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:leading-relaxed [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-panel-2 [&_pre]:p-3 [&_strong]:font-semibold [&_strong]:text-ink [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{display}</ReactMarkdown>
             </div>
-            {m.status === "streaming" && <span className="animate-pulse text-violet">▍</span>}
+            {m.status === "streaming" && <span className="animate-pulse text-accent">▍</span>}
           </div>
         )}
 
         {cited.length > 0 && (
           <div className="mt-3">
             <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-muted">
-              <ShieldCheck className="h-3.5 w-3.5 text-violet" />
+              <ShieldCheck className="h-3.5 w-3.5 text-accent" />
               Grounded in {cited.length} team source{cited.length === 1 ? "" : "s"} · permission-aware
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               {cited.map((src) => {
                 const kind = kindOf(src.title);
                 return (
-                  <div key={src.nodeId} className="rounded-lg border border-border bg-panel/60 p-3">
+                  <div key={src.nodeId} className="rounded-lg border border-border bg-panel p-3 shadow-sm">
                     {kind && (
-                      <span className="mb-1.5 inline-block rounded bg-violet/15 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-violet">
+                      <span className="mb-1.5 inline-block rounded bg-accent/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-accent">
                         {kind}
                       </span>
                     )}
-                    <div className="line-clamp-1 text-sm font-medium text-slate-100">{src.title.replace(/^[A-Za-z ]{1,18}:\s*/, "")}</div>
+                    <div className="line-clamp-1 text-sm font-medium text-ink">{src.title.replace(/^[A-Za-z ]{1,18}:\s*/, "")}</div>
                     <div className="mt-1 line-clamp-2 text-xs text-muted">{src.snippet}</div>
                   </div>
                 );

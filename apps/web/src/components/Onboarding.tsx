@@ -83,13 +83,13 @@ export function Onboarding({ steps, onClose }: { steps: OnboardingStep[]; onClos
 
       {/* spotlight — dims the rest of the screen via a huge box-shadow */}
       <div
-        className="pointer-events-none absolute rounded-xl ring-2 ring-violet/70 transition-all duration-300"
+        className="pointer-events-none absolute rounded-xl ring-2 ring-accent/70 transition-all duration-300"
         style={{
           top: sy,
           left: sx,
           width: sw,
           height: sh,
-          boxShadow: "0 0 0 9999px rgba(3,3,10,0.78), 0 0 24px 4px rgba(124,92,255,0.35)",
+          boxShadow: "0 0 0 9999px rgba(24,24,27,0.5), 0 0 24px 4px rgba(99,102,241,0.35)",
         }}
       />
 
@@ -101,18 +101,18 @@ export function Onboarding({ steps, onClose }: { steps: OnboardingStep[]; onClos
       >
         <div className="mb-1.5 flex items-center gap-1.5">
           {steps.map((_, k) => (
-            <span key={k} className={`h-1.5 rounded-full transition-all ${k === i ? "w-5 bg-violet" : "w-1.5 bg-border"}`} />
+            <span key={k} className={`h-1.5 rounded-full transition-all ${k === i ? "w-5 bg-accent" : "w-1.5 bg-border"}`} />
           ))}
         </div>
-        <h3 className="text-sm font-semibold text-white">{step.title}</h3>
-        <p className="mt-1.5 text-xs leading-relaxed text-slate-300">{step.body}</p>
+        <h3 className="text-sm font-semibold text-ink">{step.title}</h3>
+        <p className="mt-1.5 text-xs leading-relaxed text-muted">{step.body}</p>
         <div className="mt-3 flex items-center justify-between">
-          <button onClick={onClose} className="text-xs text-muted transition-colors hover:text-slate-200">
+          <button onClick={onClose} className="text-xs text-muted transition-colors hover:text-ink">
             Skip
           </button>
           <button
             onClick={next}
-            className="rounded-lg bg-violet px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-violet/90"
+            className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-accent/90"
           >
             {last ? "Got it" : `Next (${i + 1}/${steps.length})`}
           </button>

@@ -3,14 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#07070b" />
+    <meta name="theme-color" content="#fafafa" />
+
+    <!-- Apply the saved/system theme before paint to avoid a flash. -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("linked.theme");
+          if (!t) t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          if (t === "dark") document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
 
     <!-- Required platform verification tag -->
     <meta name="base-verification" content="7f3a9c21-4e8b-4d52-a1c6-9b0e2f8d4471" />
 
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+
+    <link rel="canonical" href="https://linkedlayer.xyz/" />
 
     <title>Linked Layer — Shared memory for teams &amp; agents</title>
     <meta
@@ -20,12 +32,14 @@
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://linkedlayer.xyz/" />
+    <meta property="og:site_name" content="Linked Layer" />
     <meta property="og:title" content="Linked Layer — Shared memory for teams & agents" />
     <meta
       property="og:description"
       content="Token-gated context layer over all your tools. Ask the company; let agents recall context via MCP. Powered by $LINKED."
     />
-    <meta property="og:image" content="/og-image.svg" />
+    <meta property="og:image" content="https://linkedlayer.xyz/og-image.svg" />
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>

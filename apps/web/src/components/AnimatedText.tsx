@@ -6,13 +6,14 @@ const container = (stagger: number, delay: number): Variants => ({
 });
 
 const wordUp: Variants = {
-  hidden: { y: "120%", opacity: 0, filter: "blur(6px)" },
+  hidden: { y: "0.4em", opacity: 0, filter: "blur(6px)" },
   show: { y: 0, opacity: 1, filter: "blur(0px)", transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
 };
 
 /**
- * Reveals a string word-by-word: each word rises out of a mask with a blur
- * fade and a stagger. The signature "beautiful text appearing" effect.
+ * Reveals a string word-by-word: each word rises + un-blurs with a stagger.
+ * No overflow mask (so descenders like "g" are never clipped); real word spacing
+ * is preserved via a right margin.
  */
 export function WordReveal({
   text,
@@ -38,12 +39,15 @@ export function WordReveal({
       aria-label={text}
     >
       {words.map((w, i) => (
-        <span key={i} className="inline-block overflow-hidden align-bottom" aria-hidden>
-          <motion.span variants={wordUp} className="inline-block">
-            {w}
-            {i < words.length - 1 ? " " : ""}
-          </motion.span>
-        </span>
+        <motion.span
+          key={i}
+          variants={wordUp}
+          className="inline-block"
+          style={{ marginRight: i < words.length - 1 ? "0.28em" : 0 }}
+          aria-hidden
+        >
+          {w}
+        </motion.span>
       ))}
     </motion.span>
   );

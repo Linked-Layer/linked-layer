@@ -3,14 +3,14 @@ import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/60 disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap",
+  "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap",
   {
     variants: {
       variant: {
-        primary: "bg-violet text-white hover:bg-violet/90",
-        outline: "border border-border bg-panel/60 text-slate-100 hover:border-violet/60 hover:bg-panel",
-        ghost: "text-slate-300 hover:bg-panel hover:text-white",
-        soft: "bg-violet/15 text-violet hover:bg-violet/25",
+        primary: "bg-accent text-white shadow-sm hover:bg-accent/90",
+        outline: "border border-border bg-panel text-ink hover:bg-panel-2 hover:border-stone-300",
+        ghost: "text-muted hover:bg-panel-2 hover:text-ink",
+        soft: "bg-accent/10 text-accent hover:bg-accent/15",
       },
       size: {
         sm: "h-9 px-4 text-sm",

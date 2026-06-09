@@ -24,7 +24,7 @@ export function Section({
         <div className="mx-auto mb-12 max-w-2xl text-center">
           {eyebrow && (
             <motion.div
-              className="mb-3 inline-block text-xs font-semibold uppercase tracking-[0.25em] text-violet"
+              className="mb-3 inline-block text-xs font-semibold uppercase tracking-[0.25em] text-accent"
               initial={{ opacity: 0, letterSpacing: "0.45em" }}
               whileInView={{ opacity: 1, letterSpacing: "0.25em" }}
               viewport={{ once: true, margin: "-60px" }}
@@ -35,12 +35,12 @@ export function Section({
           )}
           {title &&
             (typeof title === "string" ? (
-              <h2 className="font-serif text-4xl font-light leading-tight text-white md:text-5xl">
+              <h2 className="text-4xl font-semibold leading-tight tracking-tight text-ink md:text-5xl">
                 <WordReveal text={title} />
               </h2>
             ) : (
               <LineReveal>
-                <h2 className="font-serif text-4xl font-light text-white md:text-5xl">{title}</h2>
+                <h2 className="text-4xl font-semibold tracking-tight text-ink md:text-5xl">{title}</h2>
               </LineReveal>
             ))}
           {subtitle && (

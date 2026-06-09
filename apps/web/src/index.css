@@ -3,8 +3,31 @@
 @tailwind utilities;
 
 @layer base {
+  /* Light theme (default) — cool neutral (zinc) base + indigo accent.
+     Values are space-separated RGB channels so Tailwind's rgb(var(--x) / <alpha>) works. */
   :root {
+    color-scheme: light;
+    --bg: 250 250 250; /* zinc-50 */
+    --panel: 255 255 255; /* #ffffff */
+    --panel-2: 244 244 245; /* zinc-100 */
+    --border: 228 228 231; /* zinc-200 */
+    --ink: 24 24 27; /* zinc-900 */
+    --muted: 113 113 122; /* zinc-500 */
+    --accent: 79 70 229; /* #4f46e5 indigo-600 */
+    --accent-2: 129 140 248; /* #818cf8 indigo-400 */
+  }
+
+  /* Dark theme — cool near-black (zinc) surfaces, brighter indigo accent. */
+  .dark {
     color-scheme: dark;
+    --bg: 9 9 11; /* zinc-950 */
+    --panel: 24 24 27; /* zinc-900 */
+    --panel-2: 39 39 42; /* zinc-800 */
+    --border: 46 46 53; /* ~#2e2e35 */
+    --ink: 244 244 245; /* zinc-100 */
+    --muted: 161 161 170; /* zinc-400 */
+    --accent: 129 140 248; /* #818cf8 indigo-400 (pops on dark) */
+    --accent-2: 165 180 252; /* #a5b4fc indigo-300 */
   }
 
   html {
@@ -12,12 +35,12 @@
   }
 
   body {
-    @apply bg-bg text-slate-200 font-sans antialiased;
+    @apply bg-bg text-ink font-sans antialiased;
     overflow-x: hidden;
   }
 
   ::selection {
-    background: rgba(124, 92, 255, 0.35);
+    background: rgb(var(--accent) / 0.22);
   }
 }
 
@@ -28,23 +51,23 @@
     height: 10px;
   }
   ::-webkit-scrollbar-track {
-    background: #07070b;
+    background: rgb(var(--panel-2));
   }
   ::-webkit-scrollbar-thumb {
-    background: #2a2a3d;
+    background: rgb(var(--border));
     border-radius: 999px;
-    border: 2px solid #07070b;
+    border: 2px solid rgb(var(--panel-2));
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3a3a52;
+    background: rgb(var(--muted) / 0.6);
   }
   * {
-    scrollbar-color: #7c5cff #07070b;
+    scrollbar-color: rgb(var(--border)) rgb(var(--panel-2));
     scrollbar-width: thin;
   }
 
   .gradient-text {
-    color: #b3a6ea;
+    color: rgb(var(--accent));
   }
 
   /* Subtle bob for the live connector tiles. */
@@ -61,8 +84,27 @@
     animation: bob 2.4s ease-in-out infinite;
   }
 
+  /* Subtle ember flicker for the cursor glow — opacity only (transform is driven by JS). */
+  @keyframes ember {
+    0%,
+    100% {
+      opacity: 0.78;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  .animate-ember {
+    animation: ember 3.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-ember {
+      animation: none;
+    }
+  }
+
   .panel {
-    @apply rounded-2xl border border-border bg-panel/70 backdrop-blur;
+    @apply rounded-2xl border border-border bg-panel shadow-card;
   }
 
   /* Skeleton shimmer */
@@ -72,6 +114,6 @@
   .skeleton::after {
     @apply absolute inset-0 -translate-x-full animate-shimmer;
     content: "";
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+    background: linear-gradient(90deg, transparent, rgb(var(--ink) / 0.06), transparent);
   }
 }

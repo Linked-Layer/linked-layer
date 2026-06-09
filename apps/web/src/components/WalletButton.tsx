@@ -28,7 +28,7 @@ export function WalletButton() {
   return (
     <div ref={ref} className="relative">
       <Button variant={connected ? "outline" : "primary"} size="sm" onClick={() => setOpen((v) => !v)}>
-        {verified ? <BadgeCheck className="h-4 w-4 text-emerald-400" /> : <Wallet className="h-4 w-4" />}
+        {verified ? <BadgeCheck className="h-4 w-4 text-emerald-600" /> : <Wallet className="h-4 w-4" />}
         {connecting ? "Connecting…" : connected ? short : "Connect Wallet"}
       </Button>
 
@@ -44,12 +44,12 @@ export function WalletButton() {
             {connected ? (
               <div className="space-y-1">
                 <div className="px-3 py-1.5 text-xs uppercase tracking-wider text-muted">Wallet</div>
-                <div className="truncate px-3 pb-1 text-sm text-slate-200">{short}</div>
+                <div className="truncate px-3 pb-1 text-sm text-ink">{short}</div>
 
                 {!config.softLaunch &&
                   isLive.api() &&
                   (verified ? (
-                    <div className="flex items-center gap-2 rounded-lg bg-panel-2 px-3 py-2 text-sm text-emerald-400">
+                    <div className="flex items-center gap-2 rounded-lg bg-panel-2 px-3 py-2 text-sm text-emerald-600">
                       <BadgeCheck className="h-4 w-4 shrink-0" />
                       {session!.balance > 0 ? `Verified · ${session!.balance.toLocaleString()} ${BRAND.symbol}` : "Verified"}
                     </div>
@@ -57,7 +57,7 @@ export function WalletButton() {
                     <button
                       onClick={verify}
                       disabled={verifying}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-200 hover:bg-panel-2 disabled:opacity-60"
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-ink hover:bg-panel-2 disabled:opacity-60"
                     >
                       {verifying ? (
                         <Loader2 className="h-4 w-4 animate-spin text-violet" />
@@ -71,7 +71,7 @@ export function WalletButton() {
 
                 <button
                   onClick={handleDisconnect}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-200 hover:bg-panel-2"
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-ink hover:bg-panel-2"
                 >
                   <LogOut className="h-4 w-4 text-violet" /> Disconnect
                 </button>
@@ -86,7 +86,7 @@ export function WalletButton() {
                       void connect(w.provider);
                       setOpen(false);
                     }}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-200 hover:bg-panel-2"
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-ink hover:bg-panel-2"
                   >
                     <Wallet className="h-4 w-4 text-violet" /> {w.name}
                   </button>
