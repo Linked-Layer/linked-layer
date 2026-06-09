@@ -1,10 +1,22 @@
 node_modules/
 dist/
 *.tsbuildinfo
-# NOTE: .env is COMMITTED for the Forgejo deploy platform (deploy config; no secrets).
-# Real secrets go in Forgejo -> Settings -> Actions -> Secrets (see RUNTIME_KEYS).
+.env
+.env.*
+!.env.vault
 .env.local
 *.log
 .DS_Store
 coverage/
 .pnpm-store/
+.claude/
+.forgejo/
+.gitea/
+Dockerfile
+docker-compose*.yml
+.dockerignore
+deploy/
+DEPLOY.md
+BACKEND.md
+COPYWRITER_BRIEF.md
+SESSION_HANDOFF*.md
