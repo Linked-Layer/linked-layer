@@ -89,6 +89,15 @@ embeddings work out of the box — zero hard dependencies for local development.
 Your agent now has `recall()`, `search()` and `write()` — grounded in your team's
 real history, bounded by its real permissions.
 
+## Roadmap
+
+- [ ] Discord & Telegram connector
+- [ ] Multi-workspace support (cross-org recall with ACL firewall)
+- [ ] Streaming recall via SSE
+- [ ] `$LINKED` staking tiers — higher rate limits & priority indexing
+- [ ] On-chain proof of recall (Solana attestation per answer)
+- [ ] Self-hosted deployment guide (Kubernetes helm chart)
+
 ## License
 
 MIT
