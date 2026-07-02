@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const sourceTypeSchema = z.enum(["sample", "github", "slack", "notion"]);
+export const sourceTypeSchema = z.enum(["github", "slack", "notion"]);
 
 export const recallScopeSchema = z.object({
   workspace: z.string().min(1),

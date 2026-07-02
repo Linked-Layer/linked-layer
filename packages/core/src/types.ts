@@ -20,8 +20,8 @@ export type EdgeKind =
   | "blocks"
   | "derived_from";
 
-/** Connector source types. Only `sample` is fully implemented in this iteration. */
-export type SourceType = "sample" | "github" | "slack" | "notion";
+/** Connector source types. */
+export type SourceType = "github" | "slack" | "notion";
 
 /** Status lifecycle distilled for decisions / action items. */
 export type DistillStatus = "proposed" | "decided" | "in_progress" | "done" | "superseded" | "blocked";

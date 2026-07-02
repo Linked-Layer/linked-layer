@@ -30,7 +30,7 @@ export async function syncConnector(params: SyncParams): Promise<SyncResult> {
   const workspaceId = await ensureWorkspace(params.workspaceSlug, params.workspaceName ?? params.workspaceSlug);
 
   // Resolve config: incoming wins; else stored; else empty. Always persist a row
-  // so the cursor + last_sync are tracked uniformly (sample included).
+  // so the cursor + last_sync are tracked uniformly.
   const existing = await getConnectorRow(workspaceId, params.sourceType);
   const config = params.config ?? (existing?.config as Record<string, unknown> | undefined) ?? {};
   if (!existing || params.config) {

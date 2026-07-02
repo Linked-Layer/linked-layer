@@ -36,7 +36,7 @@ const TABS: Tab[] = [
         {c.s('"question"')}: {c.s('"What did we decide about pricing?"')},
         {"\n  "}
         {c.s('"scope"')}: {"{ "}
-        {c.s('"workspace"')}: {c.s('"acme"')}
+        {c.s('"workspace"')}: {c.s('"team"')}
         {" }"}
         {"\n"}
         {"}"}
@@ -54,7 +54,7 @@ const TABS: Tab[] = [
         {"\n"}
         {c.k("await")} linked.{c.k("recall")}({"{"}
         {"\n  "}query: {c.s('"owner of the billing migration"')},
-        {"\n  "}scope: {"{ "}workspace: {c.s('"acme"')}{" }"},
+        {"\n  "}scope: {"{ "}workspace: {c.s('"team"')}{" }"},
         {"\n  "}topK: 8,
         {"\n"}
         {"}"})

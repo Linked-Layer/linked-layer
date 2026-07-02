@@ -62,7 +62,6 @@ cp .env.example .env          # LLM/embedding keys are optional
 
 docker compose up -d          # Postgres + pgvector + Redis
 pnpm db:migrate
-pnpm seed                     # ingest the sample workspace
 
 pnpm dev                      # API + worker
 pnpm web                      # frontend on :5173

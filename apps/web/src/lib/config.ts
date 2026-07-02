@@ -9,22 +9,10 @@ const sameOrigin = env.PROD && typeof window !== "undefined" ? window.location.o
 export const config = {
   /** Backend Context API base URL. Empty (dev, no backend) → scripted fallback. */
   apiUrl: rawApiUrl || sameOrigin,
-  /**
-   * Pre-token "soft launch": site is live but the chat runs as a scripted demo and
-   * the wallet gate is OFF (no real $LINKED check). Flip to false at token launch.
-   */
-  softLaunch: ((env.VITE_SOFT_LAUNCH as string | undefined) ?? "") === "true",
-  /**
-   * DEMO/QA unlock: show the live wallet-gated chat (Connect → Verify → ask) even
-   * before the token lists, so the flow can be recorded/tested. Pair with backend
-   * secrets GATING_PROVIDER=stub + GATING_MIN_BALANCE=0 so any signed wallet passes.
-   * MUST be false in production (the real $LINKED gate replaces it at launch).
-   */
-  demoUnlock: ((env.VITE_DEMO_UNLOCK as string | undefined) ?? "") === "true",
-  /** Public, read-only demo API key (rate-limited) for the "ask the company" widget. */
-  demoKey: (env.VITE_DEMO_KEY as string | undefined) ?? "",
-  /** Demo workspace slug. */
-  demoWorkspace: (env.VITE_DEMO_WORKSPACE as string | undefined) ?? "acme",
+  /** Public, read-only API key (rate-limited) for the "ask the company" widget. */
+  apiKey: (env.VITE_API_KEY as string | undefined) ?? "",
+  /** Workspace slug. */
+  workspace: (env.VITE_WORKSPACE as string | undefined) ?? "team",
 
   /** Solana JSON-RPC endpoint for live network stats (must be browser/CORS-friendly). */
   solanaRpc: (env.VITE_SOLANA_RPC as string | undefined) ?? "https://solana-rpc.publicnode.com",

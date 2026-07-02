@@ -41,8 +41,8 @@ async function buildConnectedContext(workspace: string, holder: string | undefin
       }
     }
   }
-  // Retrieval hits that came from the user's own connected sources (not the Linked Layer reference).
-  const connectedHits = retrieval.sources.filter((s) => s.sourceType && s.sourceType !== "sample");
+  // Retrieval hits that came from the user's own connected sources.
+  const connectedHits = retrieval.sources.filter((s) => s.sourceType);
   if (connectedHits.length) {
     parts.push(connectedHits.map((s) => `## ${s.title}\n${s.snippet}`).join("\n\n"));
   }
@@ -75,17 +75,11 @@ export async function ask(params: AskParams): Promise<AskHandle> {
     holder: params.holder,
   });
 
-  // The user's connected sources (GitHub) are authoritative primary material; the
-  // Linked Layer reference content (sourceType "sample") stays a reference used only when asked.
+  // The user's connected sources (GitHub, Notion) are the authoritative primary material.
   const connectedContext = await buildConnectedContext(params.workspace, params.holder, retrieval);
-  const referenceContext = retrieval.sources
-    .filter((s) => !s.sourceType || s.sourceType === "sample")
-    .map((s) => `## ${s.title}\n${s.snippet}`)
-    .join("\n\n");
 
   const stream = answerQuestionStream({
     question: params.question,
-    context: referenceContext,
     connectedContext,
     sourceTitles: retrieval.sources.map((s) => s.title),
     history: params.history,

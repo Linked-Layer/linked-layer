@@ -3,7 +3,7 @@ import { BadgeCheck, Loader2, LogOut, ShieldCheck, Wallet } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
-import { config, isLive } from "@/lib/config";
+import { isLive } from "@/lib/config";
 import { useWalletCtx } from "@/providers/Wallet";
 
 export function WalletButton() {
@@ -46,8 +46,7 @@ export function WalletButton() {
                 <div className="px-3 py-1.5 text-xs uppercase tracking-wider text-muted">Wallet</div>
                 <div className="truncate px-3 pb-1 text-sm text-ink">{short}</div>
 
-                {!config.softLaunch &&
-                  isLive.api() &&
+                {isLive.api() &&
                   (verified ? (
                     <div className="flex items-center gap-2 rounded-lg bg-panel-2 px-3 py-2 text-sm text-emerald-600">
                       <BadgeCheck className="h-4 w-4 shrink-0" />

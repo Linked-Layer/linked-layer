@@ -28,7 +28,7 @@ async function authedFetch(path: string, init: RequestInit): Promise<unknown> {
       // Only declare a JSON content-type when we actually send a body — otherwise
       // Fastify rejects bodyless GET/DELETE with "Body cannot be empty".
       ...(init.body != null ? { "content-type": "application/json" } : {}),
-      ...(config.demoKey ? { authorization: `Bearer ${config.demoKey}` } : {}),
+      ...(config.apiKey ? { authorization: `Bearer ${config.apiKey}` } : {}),
       ...(session ? { "x-linked-session": session } : {}),
       ...(init.headers ?? {}),
     },
@@ -62,7 +62,7 @@ export interface GithubRepoOption {
 /** Connect the user's own GitHub: one-click OAuth, or PAT fallback. */
 export const githubStatus = () => authedFetch("/v1/connectors/github", { method: "GET" }) as Promise<GithubStatus>;
 export const githubOauthStart = () =>
-  authedFetch(`/v1/connectors/github/oauth/start?workspace=${encodeURIComponent(config.demoWorkspace)}`, { method: "GET" }) as Promise<{
+  authedFetch(`/v1/connectors/github/oauth/start?workspace=${encodeURIComponent(config.workspace)}`, { method: "GET" }) as Promise<{
     url: string;
   }>;
 export const githubListRepos = () =>
@@ -70,25 +70,25 @@ export const githubListRepos = () =>
 export const githubSetRepos = (repos: string[]) =>
   authedFetch("/v1/connectors/github/repos", {
     method: "POST",
-    body: JSON.stringify({ repos, workspace: config.demoWorkspace }),
+    body: JSON.stringify({ repos, workspace: config.workspace }),
   }) as Promise<{ repos: string[] }>;
 export const githubLink = (token: string, repos: string[]) =>
   authedFetch("/v1/connectors/github/link", {
     method: "POST",
-    body: JSON.stringify({ token, repos, workspace: config.demoWorkspace }),
+    body: JSON.stringify({ token, repos, workspace: config.workspace }),
   }) as Promise<{ connected: boolean; repos: string[] }>;
 export const githubSync = () =>
-  authedFetch("/v1/connectors/github/sync", { method: "POST", body: JSON.stringify({ workspace: config.demoWorkspace }) });
+  authedFetch("/v1/connectors/github/sync", { method: "POST", body: JSON.stringify({ workspace: config.workspace }) });
 export const githubUnlink = () => authedFetch("/v1/connectors/github", { method: "DELETE" });
 
 /** Notion (one-click OAuth; Notion shows its own page picker during authorize). */
 export const notionStatus = () => authedFetch("/v1/connectors/notion", { method: "GET" }) as Promise<GithubStatus>;
 export const notionOauthStart = () =>
-  authedFetch(`/v1/connectors/notion/oauth/start?workspace=${encodeURIComponent(config.demoWorkspace)}`, { method: "GET" }) as Promise<{
+  authedFetch(`/v1/connectors/notion/oauth/start?workspace=${encodeURIComponent(config.workspace)}`, { method: "GET" }) as Promise<{
     url: string;
   }>;
 export const notionSync = () =>
-  authedFetch("/v1/connectors/notion/sync", { method: "POST", body: JSON.stringify({ workspace: config.demoWorkspace }) });
+  authedFetch("/v1/connectors/notion/sync", { method: "POST", body: JSON.stringify({ workspace: config.workspace }) });
 export const notionUnlink = () => authedFetch("/v1/connectors/notion", { method: "DELETE" });
 
 export interface AskCallbacks {
@@ -116,12 +116,12 @@ export async function streamAsk(
     signal,
     headers: {
       "content-type": "application/json",
-      ...(config.demoKey ? { authorization: `Bearer ${config.demoKey}` } : {}),
+      ...(config.apiKey ? { authorization: `Bearer ${config.apiKey}` } : {}),
       ...(session ? { "x-linked-session": session } : {}),
     },
     body: JSON.stringify({
       question,
-      scope: { workspace: config.demoWorkspace },
+      scope: { workspace: config.workspace },
       history,
       ...(attachments.length ? { attachments } : {}),
     }),

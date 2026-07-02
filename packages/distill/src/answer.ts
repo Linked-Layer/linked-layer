@@ -3,8 +3,6 @@ import { type ChatTurn, getLlm } from "./llm";
 
 export interface AnswerContext {
   question: string;
-  /** Assembled context block (permission-filtered) — the Linked Layer demo reference. */
-  context: string;
   /** The user's OWN connected sources (GitHub, etc.) — authoritative primary material. */
   connectedContext?: string;
   /** Source titles for citation. */
@@ -22,14 +20,10 @@ Follow the conversation:
 
 Your connected sources (the user's own data):
 - The user can connect their own tools (GitHub repos, Notion pages, …). When a "Connected sources" block is attached, it IS the user's own data — their code, files, READMEs, issues, PRs and Notion pages. Treat it as authoritative primary material: answer about their repo/code/Notion/project directly from it, summarize it, review it, cite parts you use as [Title]. Never say you can't see their repo or Notion when this block is present.
-- When the user asks about "my repo", "my Notion", "my docs/workspace" or similar, answer ONLY from the connected sources — do NOT substitute information about the ${BRAND.name} product itself.
-
-Using the ${BRAND.name} reference:
-- A separate block of ${BRAND.name}'s own team memory may also be attached. Use it (cite as [Title]) ONLY when the user is actually asking about ${BRAND.name} — its product, team, token, or decisions.
-- If the conversation is about ANYTHING else, IGNORE the ${BRAND.name} reference (do not mention or cite it) and answer from the connected sources, the conversation, and your own knowledge.
+- When the user asks about "my repo", "my Notion", "my docs/workspace" or similar, answer ONLY from the connected sources.
 
 Attached files:
-- If the user attached files, treat them as the primary material and answer about their contents directly (the ${BRAND.name} reference does not apply to them).
+- If the user attached files, treat them as the primary material and answer about their contents directly.
 
 Other rules:
 - Greetings or small talk (e.g. "hi", "привет", "thanks"): reply with one short friendly sentence, no citations.
@@ -42,10 +36,7 @@ function userPrompt(c: AnswerContext): string {
   const connected = c.connectedContext?.trim()
     ? `\n\n---\nConnected sources (the user's own repos/code/data — primary material, use to answer about their project):\n${c.connectedContext}`
     : "";
-  const ref = c.context.trim()
-    ? `\n\n---\n${BRAND.name} reference (use ONLY if the question is about ${BRAND.name}, otherwise ignore):\n${c.context}`
-    : "";
-  return `Question: ${c.question}${files}${connected}${ref}`;
+  return `Question: ${c.question}${files}${connected}`;
 }
 
 /** Stream an answer token-by-token. Falls back to an extractive answer with no API key. */
@@ -77,7 +68,7 @@ export async function answerQuestion(c: AnswerContext): Promise<string> {
 }
 
 function fallbackAnswer(c: AnswerContext): string {
-  const ctx = (c.connectedContext?.trim() ? c.connectedContext : c.context).trim();
+  const ctx = (c.connectedContext ?? "").trim();
   if (!ctx) {
     return `I don't have anything in memory about "${c.question}".`;
   }

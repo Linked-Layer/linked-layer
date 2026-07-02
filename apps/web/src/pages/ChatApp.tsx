@@ -84,9 +84,9 @@ export function ChatApp() {
   const onboardingSteps: OnboardingStep[] = [
     {
       getEl: () => graphRef.current,
-      title: "Demo prompts",
+      title: "Try a prompt",
       body:
-        "Tap any of these to try a question about Linked Layer. In test mode Slack, GitHub & co. are connected, so you get real, source-grounded answers.",
+        "Tap any of these to ask a question. When your tools (Slack, GitHub & co.) are connected, you get real, source-grounded answers.",
     },
     {
       getEl: () => composerRef.current,
@@ -303,8 +303,7 @@ export function ChatApp() {
                     <motion.div ref={graphRef} variants={rise} className="w-full">
                       <MemoryGraph onPick={(p) => submit(p)} hubRef={hubRef} active={composerFocused || q.trim().length > 0} />
                       <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-muted">
-                        (These are demo prompts. In test mode Slack, GitHub & co. are connected — tap one to explore
-                        real, source-grounded answers.)
+                        Tap a prompt to explore source-grounded answers, or ask your own question below.
                       </p>
                     </motion.div>
                     <motion.div variants={rise}>

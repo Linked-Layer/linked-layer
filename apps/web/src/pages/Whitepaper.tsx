@@ -209,7 +209,7 @@ export function WhitepaperSection() {
             <p>
               Two shifts make {BRAND.name} timely. First, teams have never been more tool-fragmented: decisions live
               across Slack, docs, trackers, code and calls, and the cost of that fragmentation grows with every new tool.
-              Second, AI agents are moving from demos into real workflows — and an agent is only as good as the context it
+              Second, AI agents are moving from prototypes into real workflows — and an agent is only as good as the context it
               can safely reach. A permission-aware memory layer is the missing piece between “agents that sound smart” and
               “agents that know what your team actually decided.”
             </p>

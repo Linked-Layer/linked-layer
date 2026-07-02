@@ -22,7 +22,6 @@
     "test:watch": "vitest",
     "db:generate": "pnpm --filter @recall/db db:generate",
     "db:migrate": "pnpm --filter @recall/db db:migrate",
-    "seed": "tsx packages/worker/src/seed.ts",
     "key:create": "tsx packages/worker/src/keygen.ts",
     "api": "tsx packages/api/src/server.ts",
     "worker": "tsx packages/worker/src/index.ts",
