@@ -108,7 +108,7 @@ export const config = {
     /** Free preview: calls allowed per verified wallet before hold-to-use kicks in (0 disables). */
     freeTrialCalls: int("FREE_TRIAL_CALLS", 10),
     /** $LINKED SPL mint address — required for the "solana" provider. */
-    tokenMint: process.env.MNEMO_TOKEN_MINT ?? process.env.RECALL_TOKEN_MINT ?? "",
+    tokenMint: process.env.LINKED_TOKEN_MINT ?? process.env.MNEMO_TOKEN_MINT ?? process.env.RECALL_TOKEN_MINT ?? "",
     /** Solana JSON-RPC endpoint for on-chain balance reads. */
     rpcUrl: str("SOLANA_RPC_URL", "https://solana-rpc.publicnode.com"),
     /** Stub balances parsed from "holder:balance,holder:balance". */

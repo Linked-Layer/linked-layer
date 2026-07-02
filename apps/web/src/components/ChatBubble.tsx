@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Check, FileText, ShieldCheck } from "lucide-react";
+import { Check, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -38,13 +38,7 @@ function RecallTrace() {
   );
 }
 
-/** Extract a node kind from a title prefix like "Decision: …" → "Decision". */
-function kindOf(title: string): string | null {
-  const m = /^([A-Za-z][A-Za-z ]{1,18}):/.exec(title);
-  return m ? m[1].trim() : null;
-}
-
-/** One chat message — user (right) or assistant (left, with the recall trace + cited sources). */
+/** One chat message — user (right) or assistant (left, with the recall trace). */
 export function ChatBubble({ m }: { m: ChatMessage }) {
   if (m.role === "user") {
     return (
@@ -72,10 +66,8 @@ export function ChatBubble({ m }: { m: ChatMessage }) {
 
   const isError = m.status === "error";
   const empty = !m.content && m.status === "streaming";
-  // Real provenance: only the sources the answer actually cited.
-  const cited = (m.sources ?? []).filter((s) => m.content.includes(s.title));
-  // Strip inline [Title]/[1] citation markers (shown as Source cards instead), but keep
-  // real markdown links like [text](url) (bracket immediately followed by a paren).
+  // Strip inline [Title]/[1] citation markers, but keep real markdown links like
+  // [text](url) (bracket immediately followed by a paren).
   const display = m.content.replace(/\s?\[[^\]]*\](?!\()/g, "");
 
   return (
@@ -95,31 +87,6 @@ export function ChatBubble({ m }: { m: ChatMessage }) {
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{display}</ReactMarkdown>
             </div>
             {m.status === "streaming" && <span className="animate-pulse text-accent">▍</span>}
-          </div>
-        )}
-
-        {cited.length > 0 && (
-          <div className="mt-3">
-            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-muted">
-              <ShieldCheck className="h-3.5 w-3.5 text-accent" />
-              Grounded in {cited.length} team source{cited.length === 1 ? "" : "s"} · permission-aware
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {cited.map((src) => {
-                const kind = kindOf(src.title);
-                return (
-                  <div key={src.nodeId} className="rounded-lg border border-border bg-panel p-3 shadow-sm">
-                    {kind && (
-                      <span className="mb-1.5 inline-block rounded bg-accent/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-accent">
-                        {kind}
-                      </span>
-                    )}
-                    <div className="line-clamp-1 text-sm font-medium text-ink">{src.title.replace(/^[A-Za-z ]{1,18}:\s*/, "")}</div>
-                    <div className="mt-1 line-clamp-2 text-xs text-muted">{src.snippet}</div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         )}
       </div>
